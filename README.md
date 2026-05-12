@@ -115,7 +115,7 @@ day|day|day|sunset|night
 ## 出力
 
 - `prompt_text`
-  - 例: `,coffee shop,`
+  - 例: `,coffee shop,` (結合しやすいように、前後をtrimしてから`,`を付与します)
 
 ## ライセンス
 
@@ -124,7 +124,7 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 ## 宣伝画像
 
 <img width="1024" height="1536" alt="PromptRandomChoice説明画像v0 2 0" src="https://github.com/user-attachments/assets/84bd447c-5b17-409b-aa3e-cfe4bf369bed" />
-※ 区切り文字は 改行 または `|` です。カンマは候補の前後に付いた場合だけ自動で取り除きます。
+※ 区切り文字は 改行 または `|` です。カンマは候補の前後に付いた場合だけ自動で取り除きます。 <br/><br/>
 
 (最初の版)
 <img width="1024" height="1536" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/e5308bd1-82cb-4f9b-bd89-0dbddb7a009e" />
