@@ -45,12 +45,13 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 ## 使い方
 
 1. `Prompt Random Choice` ノードを置く
-2. `options_text` に候補を入れる
-3. `prompt_text` を文字列結合ノードなどでポジティブプロンプトへ足す
-4. キューを好きなだけ積む
+2. `options_text` に候補を入れる (入力例を参照)
+3. 必要に応じて `change_every` を選ぶ (NEW)
+4. `prompt_text` を文字列結合ノードなどでポジティブプロンプトへ足す
+5. キューを好きなだけ積む
 
 <br/>
-<img width="377" height="606" alt="image" src="https://github.com/user-attachments/assets/b63d942f-7b89-47c6-bb73-358c81bd0561" />
+<img width="415" height="642" alt="image" src="https://github.com/user-attachments/assets/b498aee3-07c3-4b00-94a6-d0c67af79de2" />
 
 ## 入力例
 
@@ -122,4 +123,8 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 ## 宣伝画像
 
+<img width="1024" height="1536" alt="PromptRandomChoice説明画像v0 2 0" src="https://github.com/user-attachments/assets/84bd447c-5b17-409b-aa3e-cfe4bf369bed" />
+※ 区切り文字は 改行 または `|` です。カンマは候補の前後に付いた場合だけ自動で取り除きます。
+
+(最初の版)
 <img width="1024" height="1536" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/e5308bd1-82cb-4f9b-bd89-0dbddb7a009e" />
