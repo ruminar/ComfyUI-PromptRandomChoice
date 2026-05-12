@@ -25,10 +25,15 @@ app.registerExtension({
             originalOnExecuted?.apply(this, arguments);
 
             const selected = message?.selected_text?.[0] ?? "";
-            if (selected) {
+            const repeatIndex = Number(message?.repeat_index?.[0] ?? 0);
+            const changeEvery = Number(message?.change_every?.[0] ?? 1);
+
+            if (!selected) {
+                this.title = "Prompt Random Choice";
+            } else if (changeEvery <= 1) {
                 this.title = `Choice: ${shorten(selected)}`;
             } else {
-                this.title = "Prompt Random Choice";
+                this.title = `Choice: ${shorten(selected)} (${repeatIndex}/${changeEvery})`;
             }
 
             this.setDirtyCanvas?.(true, true);

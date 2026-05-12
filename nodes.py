@@ -1,4 +1,3 @@
-import random
 import re
 import secrets
 import time
@@ -22,9 +21,6 @@ coffee shop,"""
 
 def _split_options(options_text: str):
     text = str(options_text or "")
-
-    # Split by "|" or actual newlines only.
-    # Do not treat literal "\\n" text as a delimiter.
     parts = re.split(r"\||\r?\n", text)
 
     options = []
@@ -37,6 +33,12 @@ def _split_options(options_text: str):
 
 
 class PromptRandomChoice:
+    def __init__(self):
+        self._current_choice = None
+        self._repeat_index = 0
+        self._last_options_key = None
+        self._last_change_every = None
+
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -46,6 +48,15 @@ class PromptRandomChoice:
                     {
                         "multiline": True,
                         "default": DEFAULT_OPTIONS_TEXT,
+                    },
+                ),
+                "change_every": (
+                    "INT",
+                    {
+                        "default": 1,
+                        "min": 1,
+                        "max": 999999,
+                        "step": 1,
                     },
                 ),
             },
@@ -58,30 +69,58 @@ class PromptRandomChoice:
 
     @classmethod
     def IS_CHANGED(cls, **kwargs):
-        # Force execution for every queued run so the random choice changes.
         return time.time_ns()
 
-    def pick(self, options_text):
+    def _reset_state(self):
+        self._current_choice = None
+        self._repeat_index = 0
+        self._last_options_key = None
+        self._last_change_every = None
+
+    def _select_new_choice(self, options):
+        self._current_choice = secrets.choice(options)
+        self._repeat_index = 1
+
+    def pick(self, options_text, change_every):
         options = _split_options(options_text)
+        change_every = max(1, int(change_every))
+        options_key = tuple(options)
 
         if not options:
+            self._reset_state()
             return {
                 "ui": {
                     "selected_text": [""],
+                    "repeat_index": [0],
+                    "change_every": [change_every],
                 },
                 "result": ("",),
             }
 
-        # Do not use random.choice here.
-        # Some ComfyUI workflows/extensions may reset Python's global random state
-        # from the generation seed, which can make random.choice repeat the same
-        # index every queued run. secrets.choice uses OS entropy instead.
-        selected = secrets.choice(options)
+        state_changed = (
+            self._last_options_key != options_key
+            or self._last_change_every != change_every
+            or self._current_choice not in options
+        )
+
+        if state_changed or self._current_choice is None:
+            self._select_new_choice(options)
+        elif self._repeat_index < change_every:
+            self._repeat_index += 1
+        else:
+            self._select_new_choice(options)
+
+        self._last_options_key = options_key
+        self._last_change_every = change_every
+
+        selected = self._current_choice
         prompt_text = f",{selected},"
 
         return {
             "ui": {
                 "selected_text": [selected],
+                "repeat_index": [self._repeat_index],
+                "change_every": [change_every],
             },
             "result": (prompt_text,),
         }
