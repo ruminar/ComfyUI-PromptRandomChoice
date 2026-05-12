@@ -51,7 +51,10 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 5. キューを好きなだけ積む
 
 <br/>
-<img width="415" height="642" alt="image" src="https://github.com/user-attachments/assets/b498aee3-07c3-4b00-94a6-d0c67af79de2" />
+<img width="415" height="642" alt="image" src="https://github.com/user-attachments/assets/b498aee3-07c3-4b00-94a6-d0c67af79de2" /><br/><br/>
+
+<img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
+※ 設定後は折りたたんで使うのもおすすめです
 
 ## 入力例
 
