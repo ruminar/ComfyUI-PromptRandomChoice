@@ -2,10 +2,10 @@
 
 実行のたびに「プロンプトガチャ」を爆速で回す、超軽量なランダム選択ノードじゃ！
 
-「背景や天気を適当に変えて、一晩中回しておきたいのう……」
+「背景や天気を適当に変えて、一晩中回しておきたいのう……」<br/>
 そんなおぬしの願いを、実行時間 0.010s（注：作者環境で速いとき）という瞬速の魔法で叶えて進ぜよう！
 
-背景・時間帯・天気などを別々にランダム化したい時に便利じゃ。
+背景・時間帯・天気などを別々にランダム化したい時に便利じゃ。<br/>
 フロー内に複数個置いても、それぞれ独立して動くぞ。
 
 
@@ -48,6 +48,9 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 2. `options_text` に候補を入れる
 3. `prompt_text` を文字列結合ノードなどでポジティブプロンプトへ足す
 4. キューを好きなだけ積む
+
+<br/>
+<img width="377" height="606" alt="image" src="https://github.com/user-attachments/assets/b63d942f-7b89-47c6-bb73-358c81bd0561" />
 
 ## 入力例
 
@@ -118,3 +121,5 @@ day|day|day|sunset|night
 GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 ## 宣伝画像
+
+<img width="1024" height="1536" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/e5308bd1-82cb-4f9b-bd89-0dbddb7a009e" />
