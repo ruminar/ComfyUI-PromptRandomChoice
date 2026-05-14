@@ -50,12 +50,12 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 
 1. `Prompt Random Choice` ノードを置く
 2. `options_text` に候補を入れる (入力例を参照)
-3. 必要に応じて `change_every` を選ぶ (NEW)
+3. 必要に応じて `change_every` を選ぶ
 4. `selected_text` を `Join String Multi` などの文字列結合ノードへ繋ぎ、ポジティブプロンプトへ足す
 5. キューを好きなだけ積む
 
 <br/>
-<img width="415" height="642" alt="image" src="https://github.com/user-attachments/assets/b498aee3-07c3-4b00-94a6-d0c67af79de2" /><br/><br/>
+<img width="544" height="526" alt="image" src="https://github.com/user-attachments/assets/d230659e-f008-4232-955d-1fa6fdf299fa" /><br/><br/>
 
 <img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
 ※ 設定後は折りたたんで使うのもおすすめです
@@ -173,4 +173,8 @@ day|day|day|sunset|night
 GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 ## 宣伝画像
+
+<img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
+
+
 
