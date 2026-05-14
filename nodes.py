@@ -26,10 +26,36 @@ def _split_options(options_text: str):
     options = []
     for part in parts:
         item = str(part).strip(" \t\r\n,")
-        if item:
-            options.append(item)
+
+        # Empty parts caused by repeated delimiters are ignored.
+        if not item:
+            continue
+
+        # Explicit empty choice.
+        # Example: ()|(full body:0.9)
+        if item == "()":
+            options.append("")
+            continue
+
+        options.append(item)
 
     return options
+
+
+def _safe_text(value: str):
+    text = str(value or "")
+
+    if not text:
+        return "empty"
+
+    text = text.replace("\\", "/").replace("/", "_")
+    text = re.sub(r'[<>:"|?*\x00-\x1f]', "_", text)
+    text = re.sub(r"[\s,]+", "_", text)
+    text = text.replace("(", "_").replace(")", "_")
+    text = re.sub(r"_+", "_", text)
+    text = text.strip().strip("._-")
+
+    return text or "empty"
 
 
 class PromptRandomChoice:
@@ -62,8 +88,8 @@ class PromptRandomChoice:
             },
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("prompt_text",)
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("selected_text", "selected_text_safe")
     FUNCTION = "pick"
     CATEGORY = "utils/prompt"
 
@@ -90,11 +116,11 @@ class PromptRandomChoice:
             self._reset_state()
             return {
                 "ui": {
-                    "selected_text": [""],
+                    "selected_text_title": ["(empty)"],
                     "repeat_index": [0],
                     "change_every": [change_every],
                 },
-                "result": ("",),
+                "result": ("", "empty"),
             }
 
         state_changed = (
@@ -113,16 +139,17 @@ class PromptRandomChoice:
         self._last_options_key = options_key
         self._last_change_every = change_every
 
-        selected = self._current_choice
-        prompt_text = f",{selected},"
+        selected_text = str(self._current_choice or "")
+        selected_text_safe = _safe_text(selected_text)
+        selected_text_title = selected_text if selected_text else "(empty)"
 
         return {
             "ui": {
-                "selected_text": [selected],
+                "selected_text_title": [selected_text_title],
                 "repeat_index": [self._repeat_index],
                 "change_every": [change_every],
             },
-            "result": (prompt_text,),
+            "result": (selected_text, selected_text_safe),
         }
 
 

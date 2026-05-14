@@ -16,6 +16,8 @@
 
 - **区切りは `|` または実際の改行**
   - `|` と改行の両方を区切りとして扱うので、混在していても動くぞ。
+  - 区切り文字が連続して出現した場合は、候補から取り除かれることに注意じゃ。
+    - 明示的に空白文字列を候補として返却させたい場合は、明示的に `()` と指定するのじゃ。
 
 - **候補の前後の `,` と空白を自動で整理**
   - `town,`
@@ -23,16 +25,18 @@
   - `castle, fortress,`
   のような書き方でも大丈夫じゃ。
 
-- **プロンプト結合向けの返り値**
-  - 選ばれた候補の前後に `,` を付けて返すぞ。
-  - 例: `coffee shop` → `,coffee shop,`
-
 - **現在の選択結果をタイトル表示**
   - 実行時にノードタイトルが `Choice: coffee shop` のように更新されるぞ。
   - KSamplerのプレビューと見比べやすいのじゃ。
 
 - **複数設置に対応**
   - 背景用、時間帯用、天気用など、複数ノードを置いてそれぞれ別々に使えるぞ。
+
+- **ファイル名向けの返り値**
+  - ファイル名向けに安全化した文字列 `selected_text_safe` を出力するのじゃ。
+
+- **明示的な空候補 `()` に対応**
+  - `()` が選ばれた場合、プロンプト向け出力は空文字に、ファイル名向け出力は `empty` になるのじゃ。
 
 ## 導入方法
 
@@ -47,7 +51,7 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 1. `Prompt Random Choice` ノードを置く
 2. `options_text` に候補を入れる (入力例を参照)
 3. 必要に応じて `change_every` を選ぶ (NEW)
-4. `prompt_text` を文字列結合ノードなどでポジティブプロンプトへ足す
+4. `selected_text` を `Join String Multi` などの文字列結合ノードへ繋ぎ、ポジティブプロンプトへ足す
 5. キューを好きなだけ積む
 
 <br/>
@@ -95,6 +99,15 @@ flower field|
 starry sky|
 coffee shop|
 ```
+### 何も追加しない候補
+
+`()` は明示的な空候補として扱われます。
+
+```text
+()|(full body:0.9)
+```
+
+この例では、何も追加しない場合と、`(full body:0.9)` を追加する場合をランダムに切り替えられます。
 
 ### 選ばれやすさを調整したい場合
 
@@ -112,13 +125,20 @@ day|day|day|sunset|night
 - `\n` という文字列は区切りとして扱わない
 - 各候補の前後の空白と `,` を trim
 - 空候補は無視
-- 有効な候補が1件も無い場合は空文字 `""` を返す
-- 候補があれば `,selected,` を返す
+- `()` は明示的な空候補として扱う
+- `change_every` が 1 なら毎回選び直す
+- `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
+- 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
 
 ## 出力
 
-- `prompt_text`
-  - 例: `,coffee shop,` (結合しやすいように、前後をtrimしてから`,`を付与します)
+- `selected_text`  
+  trim後の選択文字列です。  
+  `()` が選ばれた場合は空文字 `""` になります。
+
+- `selected_text_safe`  
+  ファイル名向けに安全化した出力です。  
+  `selected_text` が空なら `empty` を返します。
 
 <br/>
 
@@ -154,8 +174,3 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 ## 宣伝画像
 
-<img width="1024" height="1536" alt="PromptRandomChoice説明画像v0 2 0" src="https://github.com/user-attachments/assets/84bd447c-5b17-409b-aa3e-cfe4bf369bed" />
-※ 区切り文字は 改行 または `|` です。カンマは候補の前後に付いた場合だけ自動で取り除きます。 <br/><br/>
-
-(最初の版)
-<img width="1024" height="1536" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/e5308bd1-82cb-4f9b-bd89-0dbddb7a009e" />

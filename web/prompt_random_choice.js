@@ -24,16 +24,14 @@ app.registerExtension({
         nodeType.prototype.onExecuted = function (message) {
             originalOnExecuted?.apply(this, arguments);
 
-            const selected = message?.selected_text?.[0] ?? "";
+            const selectedTitle = message?.selected_text_title?.[0] ?? "(empty)";
             const repeatIndex = Number(message?.repeat_index?.[0] ?? 0);
             const changeEvery = Number(message?.change_every?.[0] ?? 1);
 
-            if (!selected) {
-                this.title = "Prompt Random Choice";
-            } else if (changeEvery <= 1) {
-                this.title = `Choice: ${shorten(selected)}`;
+            if (changeEvery <= 1) {
+                this.title = `Choice: ${shorten(selectedTitle)}`;
             } else {
-                this.title = `Choice: ${shorten(selected)} (${repeatIndex}/${changeEvery})`;
+                this.title = `Choice: ${shorten(selectedTitle)} (${repeatIndex}/${changeEvery})`;
             }
 
             this.setDirtyCanvas?.(true, true);
