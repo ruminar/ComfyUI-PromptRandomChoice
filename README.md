@@ -20,7 +20,7 @@
   - 先にすべての葉候補へ展開し、最後に1回だけランダム選択します
   - 展開済み候補リストは `options_text` が変わるまでキャッシュします
 
-どちらもノードしての出力は同じです。
+どちらもノードしての出力は同じじゃ。
 
 - `selected_text`
 - `selected_text_safe`
@@ -102,7 +102,7 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 <img width="544" height="526" alt="image" src="https://github.com/user-attachments/assets/d230659e-f008-4232-955d-1fa6fdf299fa" /><br/><br/>
 
 <img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
-※ 設定後は折りたたんで使うのもおすすめです
+※ 設定後は折りたたんで使うのもおすすめなのじゃ。
 
 ## 入力例
 
@@ -265,11 +265,11 @@ zoo, aquarium, jellyfish
 
 ## 推奨構成
 
-`selected_text` を kjnodes の `Join String Multi` などへ接続し、区切り文字は結合ノード側で管理するのがおすすめです。
+`selected_text` を kjnodes の `Join String Multi` などへ接続し、区切り文字は結合ノード側で管理するのがおすすめじゃ。
 
-複数の `Prompt Random Choice` / `Prompt Random Choice Ex` を並べることで、背景・時間帯・天気・構図などを別々にランダム化できます。
+複数の `Prompt Random Choice` / `Prompt Random Choice Ex` を並べることで、背景・時間帯・天気・構図などを別々にランダム化するのじゃ。
 
-ただし、Ex はすべての要素を1つにまとめるためのノードではなく、`zoo` の時だけ動物候補を追加するような、親子関係のある候補を扱うためのノードとして使うのがおすすめです。
+ただし、Ex はすべての要素を1つにまとめるためのノードではなく、`zoo` の時だけ動物候補を追加するような、親子関係のある候補を扱うためのノードとして使うのがおすすめじゃ。
 
 <br/>
 
@@ -307,6 +307,8 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 <img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
 
+EX版
+<img width="1122" height="1402" alt="PromptRandomChoiceEx説明画像" src="https://github.com/user-attachments/assets/f45a44b7-5692-4d98-854a-7736677e1f5a" />
 
 ## コピペ用おすすめ候補リスト
 
