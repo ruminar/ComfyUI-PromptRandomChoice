@@ -177,4 +177,91 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 <img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
 
 
+## 付録
 
+背景候補
+
+```text
+Indoor,
+girl's room,
+coffee shop,
+library,
+classroom,
+office,
+laboratory,
+art gallery,
+museum,
+bookstore,
+bakery,
+restaurant,
+concert hall,
+theater,
+school hallway,
+greenhouse,
+observatory,
+Outdoor,
+City,
+town,
+park,
+rooftop,
+train station,
+shopping street,
+courtyard,
+bridge,
+riverside,
+harbor,
+marketplace,
+alley,
+village,
+Nature,
+lake,
+flower garden,
+forest,
+grasslands,
+sea,
+mountain,
+flower field,
+beach,
+island,
+cave,
+botanical garden,
+Traditional,
+Fantasy-ish,
+Japanese garden,
+shrine,
+temple,
+castle,
+fortress,
+palace,
+ruins,
+```
+
+時刻
+```text
+day|day|day|morning|sunset|night
+```
+
+天候
+```text
+()|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow
+```
+
+光
+```text
+()|soft lighting|warm lighting|natural lighting|(backlighting:0.8)|(dramatic lighting:0.8)|(cinematic lighting:0.8)
+```
+
+姿勢、視線、動作
+```text
+()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping|running|skipping|looking up
+```
+
+表情
+```text
+()|smiling|gentle smile|serious expression|surprised expression|slightly surprised|shy expression|happy expression|smiling, open mouth|slightly open mouth|closed-mouth smile
+```
+
+構図
+```text
+()|(face close-up:0.9)|upper body|upper body|full body|full body|full body|full body|full body|wide shot|(from side:0.8)|(from above:0.8)|(low angle:0.8)|(from behind, looking back:0.8)
+```
