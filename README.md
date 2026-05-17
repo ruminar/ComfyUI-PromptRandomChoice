@@ -17,6 +17,8 @@
   - フラットな候補リストから1つ選ぶノード
 - `Prompt Random Choice Ex`
   - フラット候補に加えて、`{}` による入れ子の候補展開に対応したノード
+  - 先にすべての葉候補へ展開し、最後に1回だけランダム選択します
+  - 展開済み候補リストは `options_text` が変わるまでキャッシュします
 
 どちらもノードしての出力は同じです。
 
@@ -63,12 +65,21 @@
     
 ここは実例を見てもらった方が話が早そうじゃ。
 ```text
-town|zoo{animals{birds|penguins}|aquarium,{()|fish|jellyfish}}
-town|zoo{animals,birds|aquarium,jellyfish}
-town|zoo,animals,birds
-town
+town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
 ```
-こんな感じで動くぞ。
+
+これは、内部的には次の候補へ展開され、キャッシュされるのじゃ。
+
+```text
+town
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
+この5候補から1つが選ばれるのじゃ。<br/>
+入れ子になった各要素が、すべて等しい確率で出現するように工夫しておるのじゃ。
 <br/>
 
 ## 導入方法
@@ -165,16 +176,81 @@ day|day|day|sunset|night
 - `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
 - 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
 
+## Prompt Random Choice
+
+候補リストから1つ選びます。
+
+```text
+town|park|lake|coffee shop
+```
+
+`()` は明示的な空候補です。
+
+```text
+()|(full body:0.9)
+```
+
+## Prompt Random Choice Ex
+
+`Prompt Random Choice` と同じフラットな候補リストをそのまま使えます。
+
+```text
+town|park|lake|coffee shop
+```
+
+さらに、候補の中に `{}` を書くことで、選ばれた候補にだけ追加候補をぶら下げられます。
+
+```text
+town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
+```
+
+この入力は、内部的には次の候補へ展開されます。
+
+```text
+town
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
+この5候補から1つが選ばれます。
+
+### 複数行の Ex 例
+
+```text
+zoo{
+  animals{
+    birds
+    penguins
+  }
+  aquarium{
+    fish
+    jellyfish
+  }
+}
+```
+
+出力例:
+
+```text
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
 ### Ex のルール
 
 - 選択候補の区切り文字は、実際の改行 または `|`
 - 空候補は無視
 - `()` は明示的な空候補
 - `{}` の内部も、実際の改行 または `|` で候補分割
-- `{}` は最内側からランダムに展開
+- `{}` は最内側からすべての葉候補へ展開
 - 展開結果は親要素へ `, ` で接続
-- `{}` がなくなるまで繰り返し展開
-- 展開回数には安全上限があります
+- 最終候補リストから最後に1回だけランダム選択
+- 展開済み候補リストは `options_text` が変わるまでキャッシュ
+- 展開候補数と展開回数には安全上限があります
 - リテラルの `{` / `}` をプロンプト文字として使う用途は非対応
 
 ## 出力
@@ -186,6 +262,14 @@ day|day|day|sunset|night
 - `selected_text_safe`  
   ファイル名向けに安全化した出力です。  
   `selected_text` が空なら `empty` を返します。
+
+## 推奨構成
+
+`selected_text` を kjnodes の `Join String Multi` などへ接続し、区切り文字は結合ノード側で管理するのがおすすめです。
+
+複数の `Prompt Random Choice` / `Prompt Random Choice Ex` を並べることで、背景・時間帯・天気・構図などを別々にランダム化できます。
+
+ただし、Ex はすべての要素を1つにまとめるためのノードではなく、`zoo` の時だけ動物候補を追加するような、親子関係のある候補を扱うためのノードとして使うのがおすすめです。
 
 <br/>
 
