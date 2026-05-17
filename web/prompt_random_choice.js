@@ -1,7 +1,10 @@
 import { app } from "../../scripts/app.js";
 
 const EXTENSION_NAME = "ruminar.PromptRandomChoice";
-const NODE_NAME = "PromptRandomChoice";
+const NODE_NAMES = new Set([
+    "PromptRandomChoice",
+    "PromptRandomChoiceEx",
+]);
 
 function shorten(text, maxLength = 40) {
     const value = String(text ?? "");
@@ -15,7 +18,7 @@ app.registerExtension({
     name: EXTENSION_NAME,
 
     beforeRegisterNodeDef(nodeType, nodeData) {
-        if (String(nodeData?.name ?? "") !== NODE_NAME) {
+        if (!NODE_NAMES.has(String(nodeData?.name ?? ""))) {
             return;
         }
 

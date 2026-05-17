@@ -9,6 +9,20 @@
 フロー内に複数個置いても、それぞれ独立して動くぞ。
 
 
+## v0.4.0
+
+`Prompt Random Choice Ex` を追加したのじゃ。
+
+- `Prompt Random Choice`
+  - フラットな候補リストから1つ選ぶノード
+- `Prompt Random Choice Ex`
+  - フラット候補に加えて、`{}` による入れ子の候補展開に対応したノード
+
+どちらもノードしての出力は同じです。
+
+- `selected_text`
+- `selected_text_safe`
+
 ## 特徴
 
 - **実行ごとにランダム選択**
@@ -37,6 +51,25 @@
 
 - **明示的な空候補 `()` に対応**
   - `()` が選ばれた場合、プロンプト向け出力は空文字に、ファイル名向け出力は `empty` になるのじゃ。
+
+## Prompt Random Choice Ex の追加要素
+
+- **フラット候補に加えて、`{}` による入れ子の候補展開に対応**
+  - しかも、ComfyUIの標準記法と異なり、`{}` 内を入れ子にできるのじゃ。
+    - `{}` 内の要素は内側から解釈され、選択項目がカンマで前後に接続される。
+  - `|` と改行の両方を区切りとして扱うので、混在していても動くぞ。
+  - 区切り文字が連続して出現した場合は、候補から取り除かれることに注意じゃ。
+    - 明示的に空白文字列を候補として返却させたい場合は、明示的に `()` と指定するのじゃ。
+    
+ここは実例を見てもらった方が話が早そうじゃ。
+```text
+town|zoo{animals{birds|penguins}|aquarium,{()|fish|jellyfish}}
+town|zoo{animals,birds|aquarium,jellyfish}
+town|zoo,animals,birds
+town
+```
+こんな感じで動くぞ。
+<br/>
 
 ## 導入方法
 
@@ -119,6 +152,8 @@ day|day|day|sunset|night
 
 昼を多めに出したい、たまに夕方や夜も混ぜたい、という時に便利じゃ。
 
+<br/>
+
 ## 仕様
 
 - `|` または実際の改行で分割
@@ -129,6 +164,18 @@ day|day|day|sunset|night
 - `change_every` が 1 なら毎回選び直す
 - `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
 - 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
+
+### Ex のルール
+
+- 選択候補の区切り文字は、実際の改行 または `|`
+- 空候補は無視
+- `()` は明示的な空候補
+- `{}` の内部も、実際の改行 または `|` で候補分割
+- `{}` は最内側からランダムに展開
+- 展開結果は親要素へ `, ` で接続
+- `{}` がなくなるまで繰り返し展開
+- 展開回数には安全上限があります
+- リテラルの `{` / `}` をプロンプト文字として使う用途は非対応
 
 ## 出力
 
@@ -177,9 +224,9 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 <img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
 
 
-## 付録
+## コピペ用おすすめ候補リスト
 
-背景候補
+### 背景
 
 ```text
 Indoor,
@@ -236,32 +283,93 @@ palace,
 ruins,
 ```
 
-時刻
+### 背景 Ex 版
+
+```text
+indoor{
+  girl's room
+  coffee shop
+  library
+  classroom
+  office
+  laboratory
+  art gallery
+  museum
+  bookstore
+  bakery
+  restaurant
+  concert hall
+  theater
+  school hallway
+  greenhouse
+  observatory
+}
+city{
+  town
+  park
+  rooftop
+  train station
+  shopping street
+  courtyard
+  bridge
+  riverside
+  harbor
+  marketplace
+  alley
+  village
+}
+nature{
+  lake
+  flower garden
+  forest
+  grasslands
+  sea
+  mountain
+  flower field
+  beach
+  island
+  cave
+  botanical garden
+}
+traditional{
+  japanese garden
+  shrine
+  temple
+}
+fantasy-ish{
+  castle
+  fortress
+  palace
+  ruins
+}
+```
+
+### 時刻
 ```text
 day|day|day|morning|sunset|night
 ```
 
-天候
+### 天候
 ```text
 ()|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow
 ```
 
-光
+### 光
 ```text
 ()|soft lighting|warm lighting|natural lighting|(backlighting:0.8)|(dramatic lighting:0.8)|(cinematic lighting:0.8)
 ```
 
-姿勢、視線、動作
+### 姿勢、視線、動作
 ```text
 ()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping|running|skipping|looking up
 ```
 
-表情
+### 表情
 ```text
 ()|smiling|gentle smile|serious expression|surprised expression|slightly surprised|shy expression|happy expression|smiling, open mouth|slightly open mouth|closed-mouth smile
 ```
 
-構図
+### 構図
 ```text
 ()|(face close-up:0.9)|upper body|upper body|full body|full body|full body|full body|full body|wide shot|(from side:0.8)|(from above:0.8)|(low angle:0.8)|(from behind, looking back:0.8)
 ```
