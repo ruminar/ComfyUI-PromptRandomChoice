@@ -21,9 +21,13 @@ coffee shop,"""
 DEFAULT_OPTIONS_TEXT_EX = """town
 zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
 coffee shop{cake|coffee cup}
-amusement park{ferris wheel|carousel|balloons}"""
+amusement park{ferris wheel|carousel|balloons}
+(){
+  white day
+  wedding ceremony
+  birthday party
+}"""
 
-INNER_BLOCK_PATTERN = re.compile(r"\{([^{}]*)\}", re.DOTALL)
 MAX_EXPAND_STEPS = 64
 MAX_EXPANDED_OPTIONS = 4096
 
@@ -34,6 +38,10 @@ def _split_options(options_text: str):
 
     Empty candidates are ignored.
     "()" is treated as an explicit empty candidate and becomes "".
+
+    This function is shared by PromptRandomChoice and PromptRandomChoiceEx.
+    For Ex, nested blocks such as zoo{animals|birds} stay together when
+    splitting the top-level candidate list.
     """
     text = str(options_text or "").replace("\r\n", "\n").replace("\r", "\n")
 
@@ -65,9 +73,12 @@ def _split_options(options_text: str):
     for part in parts:
         item = str(part).strip(" \t\r\n,")
 
+        # Empty parts caused by repeated delimiters are ignored.
         if not item:
             continue
 
+        # Explicit empty choice.
+        # Example: ()|(full body:0.9)
         if item == "()":
             options.append("")
             continue
@@ -78,13 +89,40 @@ def _split_options(options_text: str):
 
 
 def _normalize_prompt_fragment(text: str):
+    """
+    Normalize comma-connected prompt fragments after nested expansion.
+
+    Standalone "()" fragments are removed here, which enables:
+      (){white day|wedding ceremony}
+    to become:
+      white day
+      wedding ceremony
+
+    This also keeps the syntax forgiving:
+      zoo{aquarium,{fish|jellyfish}}
+    becomes:
+      zoo, aquarium, fish
+    """
     value = str(text or "")
+
+    # Normalize line breaks/tabs to spaces.
     value = re.sub(r"[\t\r\n]+", " ", value)
-    value = re.sub(r"\s*,\s*", ", ", value)
-    value = re.sub(r"(,\s*){2,}", ", ", value)
-    value = re.sub(r"\s+", " ", value)
-    value = value.strip(" \t\r\n,")
-    return value
+
+    # Normalize spaces around commas.
+    value = re.sub(r"\s*,\s*", ",", value)
+
+    # Split comma-connected fragments, remove empty fragments and explicit
+    # empty marker fragments, then join them in a prompt-friendly form.
+    parts = []
+    for part in value.split(","):
+        item = part.strip()
+        if not item:
+            continue
+        if item == "()":
+            continue
+        parts.append(item)
+
+    return ", ".join(parts)
 
 
 def _safe_text(value: str):
@@ -104,73 +142,97 @@ def _safe_text(value: str):
     return text or "empty"
 
 
-def _find_first_brace_block(text: str):
-    """Return (open_index, close_index) for the first balanced {...} block."""
-    open_index = text.find("{")
-    if open_index < 0:
+def _find_first_block(text: str):
+    """
+    Return (start, end) for the first balanced {...} block.
+
+    If braces are unmatched, return None and leave the text as literal.
+    """
+    value = str(text or "")
+    start = value.find("{")
+    if start < 0:
         return None
 
     depth = 0
-    for index in range(open_index, len(text)):
-        char = text[index]
+    for index in range(start, len(value)):
+        char = value[index]
         if char == "{":
             depth += 1
         elif char == "}":
             depth -= 1
             if depth == 0:
-                return open_index, index
+                return start, index
 
-    # Unmatched "{". Treat it as normal text rather than looping forever.
     return None
 
 
-def _expand_one_expression(text: str, depth: int = 0):
+def _expand_all_nested_choices(option_text: str):
     """
-    Expand one candidate into all final leaf candidates.
+    Expand one top-level candidate into all final leaf candidates.
 
-    This expands the first outermost {...} block, chooses every top-level
-    branch in that block, and then recursively expands only the selected
-    branch. This avoids duplicating unrelated branches.
+    Ex uses leaf-uniform probability:
+      1. expand all nested {...} branches first
+      2. choose one item from the expanded leaf list
+
+    Example:
+      town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
+
+    becomes:
+      town
+      zoo, animals, birds
+      zoo, animals, penguins
+      zoo, aquarium, fish
+      zoo, aquarium, jellyfish
+
+    Empty parent groups are supported:
+      (){white day|wedding ceremony}
+
+    becomes:
+      white day
+      wedding ceremony
     """
-    if depth > MAX_EXPAND_STEPS:
-        raise ValueError(
-            "PromptRandomChoiceEx expansion exceeded the maximum expansion steps. "
-            "Please check nested braces."
-        )
 
-    value = str(text or "").strip(" \t\r\n,")
-    block = _find_first_brace_block(value)
+    def expand_recursive(value: str, depth: int):
+        if depth > MAX_EXPAND_STEPS:
+            raise ValueError(
+                "PromptRandomChoiceEx expansion exceeded the maximum expansion steps. "
+                "Please check nested braces."
+            )
 
-    if block is None:
-        return [_normalize_prompt_fragment(value)]
+        block = _find_first_block(value)
+        if block is None:
+            return [_normalize_prompt_fragment(value)]
 
-    open_index, close_index = block
-    prefix = value[:open_index]
-    body = value[open_index + 1:close_index]
-    suffix = value[close_index + 1:]
+        start, end = block
+        prefix = value[:start]
+        body = value[start + 1:end]
+        suffix = value[end + 1:]
 
-    branch_options = _split_options(body)
-    if not branch_options:
-        branch_options = [""]
+        inner_options = _split_options(body)
+        if not inner_options:
+            inner_options = [""]
 
-    expanded = []
-    for branch in branch_options:
-        if branch:
-            candidate = f"{prefix}, {branch}{suffix}"
-        else:
-            candidate = f"{prefix}{suffix}"
+        results = []
+        for inner in inner_options:
+            inner_expanded_options = expand_recursive(inner, depth + 1)
 
-        for item in _expand_one_expression(candidate, depth + 1):
-            normalized = _normalize_prompt_fragment(item)
-            expanded.append(normalized)
+            for inner_expanded in inner_expanded_options:
+                replacement = f", {inner_expanded}" if inner_expanded else ""
+                candidate = prefix + replacement + suffix
+                expanded_candidates = expand_recursive(candidate, depth + 1)
 
-            if len(expanded) > MAX_EXPANDED_OPTIONS:
-                raise ValueError(
-                    "PromptRandomChoiceEx expanded too many options "
-                    f"({len(expanded)} > {MAX_EXPANDED_OPTIONS})."
-                )
+                for expanded in expanded_candidates:
+                    results.append(expanded)
+                    if len(results) > MAX_EXPANDED_OPTIONS:
+                        raise ValueError(
+                            "PromptRandomChoiceEx expanded too many options "
+                            f"({len(results)} > {MAX_EXPANDED_OPTIONS})."
+                        )
 
-    return expanded
+        return results
+
+    initial = str(option_text or "").strip(" \t\r\n,")
+    return expand_recursive(initial, 0)
 
 
 def _build_expanded_options(options_text: str):
@@ -178,9 +240,8 @@ def _build_expanded_options(options_text: str):
     expanded_options = []
 
     for option in top_options:
-        for expanded in _expand_one_expression(option):
-            # Keep "" when it came from explicit (). It allows Ex to return an
-            # intentional empty selection just like PromptRandomChoice.
+        for expanded in _expand_all_nested_choices(option):
+            # Keep empty results because they can come from explicit ().
             expanded_options.append(expanded)
 
             if len(expanded_options) > MAX_EXPANDED_OPTIONS:
@@ -190,7 +251,6 @@ def _build_expanded_options(options_text: str):
                 )
 
     return tuple(expanded_options)
-
 
 
 class _RandomChoiceStateMixin:
@@ -332,6 +392,11 @@ class PromptRandomChoiceEx(_RandomChoiceStateMixin):
     FUNCTION = "pick"
     CATEGORY = "utils/prompt"
 
+    def _reset_state(self):
+        super()._reset_state()
+        # Keep the expansion cache; it depends only on options_text.
+        # Selection state and expansion cache have different lifecycles.
+
     def _get_expanded_options_cached(self, options_text):
         cache_key = str(options_text or "")
 
@@ -339,6 +404,7 @@ class PromptRandomChoiceEx(_RandomChoiceStateMixin):
             return self._expanded_options_cache
 
         expanded_options = _build_expanded_options(cache_key)
+
         self._expanded_options_cache_key = cache_key
         self._expanded_options_cache = expanded_options
 

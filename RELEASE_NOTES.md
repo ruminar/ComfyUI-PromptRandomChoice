@@ -11,6 +11,9 @@
   - 展開結果を親要素へ `, ` で接続
   - 展開済み候補リストを `options_text` 単位でキャッシュ
   - `selected_text` / `selected_text_safe` を出力
+  - `(){...}` のような空親グループに対応
+    - 親要素 `()` は出力されません
+    - 子要素だけが候補になります
 
 ## 例
 
@@ -27,8 +30,27 @@ zoo, aquarium, fish
 zoo, aquarium, jellyfish
 ```
 この5候補から1つが選ばれます。
+<br/>
+
+
+親要素 `()` の例
+```text
+(){
+  white day
+  wedding ceremony
+  birthday party
+}
+```
+
+内部的には次の候補へ展開されます。
+
+```text
+white day
+wedding ceremony
+birthday party
 
 ## 備考
 
-通常の `Prompt Random Choice` は、フラットな候補選択用としてそのまま残しています。  
-階層候補が必要な場合だけ `Prompt Random Choice Ex` を使ってください。
+- `Prompt Random Choice Ex` は、すべての葉候補へ展開してから最後に1回だけランダム選択します
+- 展開済み候補リストは `options_text` 単位でキャッシュします
+- 通常の `Prompt Random Choice` は、フラットな候補選択用としてそのまま残しています
