@@ -20,7 +20,7 @@
   - 先にすべての葉候補へ展開し、最後に1回だけランダム選択します
   - 展開済み候補リストは `options_text` が変わるまでキャッシュします
 
-どちらもノードしての出力は同じじゃ。
+どちらもノードとしての出力は同じじゃ。
 
 - `selected_text`
 - `selected_text_safe`
@@ -79,7 +79,7 @@ zoo, aquarium, jellyfish
 ```
 
 この5候補から1つが選ばれるのじゃ。<br/>
-入れ子になった各要素が、すべて等しい確率で出現するように工夫しておるのじゃ。
+展開後の最終候補が、すべて等しい確率で選ばれるようにしてるのじゃな。
 <br/>
 
 ## 導入方法
@@ -317,127 +317,186 @@ EX版
 ```text
 Indoor,
 girl's room,
+bedroom,
+living room,
+kitchen,
+dining room,
+bathroom,
+attic,
+basement,
 coffee shop,
+cafe terrace,
 library,
+private library,
 classroom,
+music room,
+science room,
+computer room,
+school infirmary,
+gymnasium,
 office,
+meeting room,
+conference room,
 laboratory,
+medical room,
+art studio,
 art gallery,
 museum,
+aquarium,
+planetarium,
+observatory interior,
 bookstore,
 bakery,
+flower shop,
+convenience store,
+supermarket,
 restaurant,
+bar,
+diner,
+karaoke room,
+arcade,
+game center,
+cinema,
 concert hall,
 theater,
+dance studio,
 school hallway,
+locker room,
+stairwell,
+elevator hall,
 greenhouse,
-observatory,
+train interior,
+subway interior,
+airport terminal,
+shopping mall,
+hotel room,
+lobby,
+chapel interior,
+
 Outdoor,
-City,
+city,
 town,
+downtown,
+residential area,
 park,
+playground,
+plaza,
 rooftop,
+balcony,
+terrace,
 train station,
+bus stop,
+airport runway,
 shopping street,
 courtyard,
 bridge,
+crosswalk,
+intersection,
 riverside,
+canal,
 harbor,
+port,
+boardwalk,
 marketplace,
+festival street,
+food stall area,
 alley,
+back alley,
 village,
+suburban street,
+schoolyard,
+campus,
+parking lot,
+construction site,
+amusement park,
+theme park,
+zoo,
+stadium exterior,
+cemetery,
+clock tower,
+lighthouse,
+windmill,
+waterfront,
+
 Nature,
 lake,
+pond,
+waterfall,
+river,
+stream,
 flower garden,
+rose garden,
 forest,
+bamboo forest,
+pine forest,
+rainforest,
 grasslands,
+meadow,
+savanna,
 sea,
+ocean,
+coral reef,
 mountain,
+mountain path,
+hilltop,
+valley,
+cliff,
 flower field,
+sunflower field,
+lavender field,
 beach,
+shore,
 island,
+tropical island,
 cave,
+crystal cave,
 botanical garden,
+jungle,
+swamp,
+marsh,
+desert,
+oasis,
+snowfield,
+glacier,
+ice cave,
+volcanic area,
+hot spring,
+starry sky,
+night sky,
+aurora,
+
 Traditional,
-Fantasy-ish,
 Japanese garden,
 shrine,
 temple,
+tea house,
+tatami room,
+engawa,
+onsen,
+ryokan,
+festival grounds,
+torii gate,
+bamboo grove path,
 castle,
 fortress,
 palace,
 ruins,
-```
-
-### 背景 Ex 版
-
-```text
-indoor{
-  girl's room
-  coffee shop
-  library
-  classroom
-  office
-  laboratory
-  art gallery
-  museum
-  bookstore
-  bakery
-  restaurant
-  concert hall
-  theater
-  school hallway
-  greenhouse
-  observatory
-}
-city{
-  town
-  park
-  rooftop
-  train station
-  shopping street
-  courtyard
-  bridge
-  riverside
-  harbor
-  marketplace
-  alley
-  village
-}
-nature{
-  lake
-  flower garden
-  forest
-  grasslands
-  sea
-  mountain
-  flower field
-  beach
-  island
-  cave
-  botanical garden
-}
-traditional{
-  japanese garden
-  shrine
-  temple
-}
-fantasy-ish{
-  castle
-  fortress
-  palace
-  ruins
-}
+old town,
+stone pavement,
+pagoda,
+dojo,
+samurai residence,
+courtyard garden,
 ```
 
 ### 時刻
 ```text
-day|day|day|morning|sunset|night
+()|day|day|day|morning|sunset|night
 ```
 
 ### 天候
 ```text
-()|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow
+()|Strong sunshine|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow|Rainbow after Rain|storm, thunder
 ```
 
 ### 光
@@ -458,4 +517,424 @@ day|day|day|morning|sunset|night
 ### 構図
 ```text
 ()|(face close-up:0.9)|upper body|upper body|full body|full body|full body|full body|full body|wide shot|(from side:0.8)|(from above:0.8)|(low angle:0.8)|(from behind, looking back:0.8)
+```
+
+### 背景 Ex 版
+
+背景は、項目ごとにまとめてあるから、全部くっつけて1つの背景ノードにするのも、<br/>
+それぞれ別ノードにして組み合わせるのも、おぬしの好きな方を選べるようにしたぞ！<br/>
+同じ項目を繰り返したり、不要な項目を削除したりして、おぬし好みのプロンプトに育てておくれなのじゃ。
+
+#### Ex 標準背景
+```text
+indoor{
+  girl's room,
+  bedroom,
+  living room,
+  kitchen,
+  dining room,
+  bathroom,
+  attic,
+  basement,
+  coffee shop,
+  cafe terrace,
+  library,
+  private library,
+  classroom,
+  music room,
+  science room,
+  computer room,
+  school infirmary,
+  gymnasium,
+  office,
+  meeting room,
+  conference room,
+  laboratory,
+  medical room,
+  art studio,
+  art gallery,
+  museum,
+  aquarium,
+  planetarium,
+  observatory interior,
+  bookstore,
+  bakery,
+  flower shop,
+  convenience store,
+  supermarket,
+  restaurant,
+  bar,
+  diner,
+  karaoke room,
+  arcade,
+  game center,
+  cinema,
+  concert hall,
+  theater,
+  dance studio,
+  school hallway,
+  locker room,
+  stairwell,
+  elevator hall,
+  greenhouse,
+  train interior,
+  subway interior,
+  airport terminal,
+  shopping mall,
+  hotel room,
+  lobby,
+  chapel interior,
+}
+Outdoor{
+  city,
+  town,
+  downtown,
+  residential area,
+  park,
+  playground,
+  plaza,
+  rooftop,
+  balcony,
+  terrace,
+  train station,
+  bus stop,
+  airport runway,
+  shopping street,
+  courtyard,
+  bridge,
+  crosswalk,
+  intersection,
+  riverside,
+  canal,
+  harbor,
+  port,
+  boardwalk,
+  marketplace,
+  festival street,
+  food stall area,
+  alley,
+  back alley,
+  village,
+  suburban street,
+  schoolyard,
+  campus,
+  parking lot,
+  construction site,
+  amusement park,
+  theme park,
+  zoo,
+  stadium exterior,
+  cemetery,
+  clock tower,
+  lighthouse,
+  windmill,
+  waterfront,
+}
+Nature{
+  lake,
+  pond,
+  waterfall,
+  river,
+  stream,
+  flower garden,
+  rose garden,
+  forest,
+  bamboo forest,
+  pine forest,
+  rainforest,
+  grasslands,
+  meadow,
+  savanna,
+  sea,
+  ocean,
+  coral reef,
+  mountain,
+  mountain path,
+  hilltop,
+  valley,
+  cliff,
+  flower field,
+  sunflower field,
+  lavender field,
+  beach,
+  shore,
+  island,
+  tropical island,
+  cave,
+  crystal cave,
+  botanical garden,
+  jungle,
+  swamp,
+  marsh,
+  desert,
+  oasis,
+  snowfield,
+  glacier,
+  ice cave,
+  volcanic area,
+  hot spring,
+  starry sky,
+  night sky,
+  aurora,
+}
+traditional{
+  Japanese garden,
+  shrine,
+  temple,
+  tea house,
+  tatami room,
+  engawa,
+  onsen,
+  ryokan,
+  festival grounds,
+  torii gate,
+  bamboo grove path,
+  castle,
+  fortress,
+  palace,
+  ruins,
+  old town,
+  stone pavement,
+  pagoda,
+  dojo,
+  samurai residence,
+  courtyard garden,
+}
+```
+
+#### Ex ファンタジー特盛背景
+```text
+Fantasy{
+  (),
+  magic library,
+  alchemy workshop,
+  wizard tower,
+  enchanted forest,
+  fairy garden,
+  floating island,
+  sky castle,
+  crystal palace,
+  ancient ruins,
+  mystic cave,
+  dragon's lair,
+  underground city,
+  sacred spring,
+  giant tree,
+  mirror lake,
+  celestial garden,
+  forgotten temple,
+  phantom town,
+  clockwork city,
+  throne room,
+  dungeon,
+  cathedral,
+  portal site,
+  magic academy,
+  sorcerer's tower,
+  witch's cottage,
+  fairy village,
+  elven forest,
+  dwarf mine,
+  crystal cave,
+  ancient altar,
+  holy sanctuary,
+  forbidden library,
+  sky temple,
+  floating garden,
+  moonlit lake,
+  starlight forest,
+  enchanted castle,
+  royal palace,
+  hidden village,
+  ancient labyrinth,
+  monster arena,
+  summoning chamber,
+}
+Japanese-style Fantasy{
+  (),
+  moonlit shrine,
+  mystic shrine,
+  ancient shrine,
+  forgotten shrine,
+  mountain shrine,
+  forest shrine,
+  torii gate,
+  spirit forest,
+  youkai village,
+  oni castle,
+  kitsune shrine,
+  tanuki forest,
+  sacred mountain,
+  hidden onsen,
+  samurai castle,
+  ninja village,
+  abandoned temple,
+  bamboo spirit path,
+  misty bamboo forest,
+  sakura spirit realm,
+  red torii path,
+  shrine festival night,
+  haunted Japanese mansion,
+  old samurai residence,
+  floating lantern river,
+  dragon god shrine,
+  celestial fox shrine,
+  underworld gate,
+}
+Chinese-style Fantasy{
+  (),
+  ancient Chinese palace,
+  imperial palace,
+  jade palace,
+  celestial palace,
+  xianxia sect,
+  martial arts sect,
+  mountain cultivation temple,
+  immortal mountain,
+  cloud sea,
+  bamboo mountain path,
+  lotus pond,
+  moon gate garden,
+  Chinese courtyard,
+  ancient Chinese city,
+  lantern street,
+  water town,
+  stone bridge town,
+  dragon palace,
+  phoenix palace,
+  taoist temple,
+  misty peak,
+  sword cultivation arena,
+  heavenly staircase,
+  jade pavilion,
+  floating pagoda,
+  immortal cave,
+  spirit spring,
+  celestial river,
+}
+Fantasy-ish{
+  (),
+  gothic castle,
+  vampire mansion,
+  haunted mansion,
+  dark cathedral,
+  graveyard,
+  crypt,
+  necromancer's lair,
+  witch market,
+  night carnival,
+  dream world,
+  mirror world,
+  toy kingdom,
+  candy kingdom,
+  steampunk city,
+  airship dock,
+  mechanical tower,
+  clock tower interior,
+  abandoned laboratory,
+  magical observatory,
+  starship temple,
+  ancient machine room,
+  lost civilization,
+  desert ruins,
+  sunken city,
+  underwater palace,
+  ice palace,
+  volcanic fortress,
+  shadow realm,
+  celestial battlefield,
+}
+```
+
+#### Ex 季節/イベント背景
+```text
+Spring{
+  (),
+  cherry blossoms,
+  sakura avenue,
+  hanami,
+  spring festival,
+  graduation ceremony,
+  entrance ceremony,
+  easter,
+  flower viewing picnic,
+  rainy season,
+  hydrangea garden,
+  children's day,
+  doll festival,
+  easter egg hunt,
+}
+Summer{
+  (),
+  summer festival,
+  festival night,
+  food stalls,
+  lantern festival,
+  bon festival,
+  fireworks,
+  fireworks festival,
+  poolside,
+  water park,
+  beach party,
+  tropical vacation,
+  campground,
+  tanabata,
+  tanabata festival,
+  star festival,
+}
+Autumn{
+  (),
+  autumn leaves,
+  maple forest,
+  harvest festival,
+  moon viewing,
+  halloween,
+  halloween party,
+  halloween street,
+  pumpkin patch,
+  haunted house,
+  masquerade party,
+  autumn festival,
+  thanksgiving,
+}
+Winter{
+  (),
+  snowy town,
+  snow festival,
+  ice skating rink,
+  christmas,
+  christmas market,
+  christmas tree,
+  christmas party,
+  illuminations,
+  winter holiday,
+  new year,
+  new year's shrine visit,
+  first sunrise,
+  snowy shrine,
+  winter illuminations,
+  new year's festival,
+  new year's eve party,
+  winter market,
+  christmas dinner,
+  holiday shopping street,
+  valentine's day,
+}
+(){
+  white day,
+  wedding ceremony,
+  birthday party,
+  anniversary,
+  school festival,
+  cultural festival,
+  sports festival,
+  idol concert,
+  live event,
+  tea party,
+  garden party,
+  picnic,
+  parade,
+  carnival,
+  temple fair,
+}
 ```
