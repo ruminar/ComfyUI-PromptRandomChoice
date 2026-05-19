@@ -506,7 +506,7 @@ courtyard garden,
 
 ### 姿勢、視線、動作
 ```text
-()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping|running|skipping|looking up
+()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping high|running|skipping|looking up
 ```
 
 ### 表情

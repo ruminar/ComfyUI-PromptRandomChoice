@@ -22,6 +22,9 @@ app.registerExtension({
             return;
         }
 
+        const nodeName = String(nodeData?.name ?? "");
+        const prefix = nodeName === "PromptRandomChoiceEx" ? "Ex" : "Ch";
+        const maxTitleLength = nodeName === "PromptRandomChoiceEx" ? 36 : 40;
         const originalOnExecuted = nodeType.prototype.onExecuted;
 
         nodeType.prototype.onExecuted = function (message) {
@@ -32,9 +35,9 @@ app.registerExtension({
             const changeEvery = Number(message?.change_every?.[0] ?? 1);
 
             if (changeEvery <= 1) {
-                this.title = `Choice: ${shorten(selectedTitle)}`;
+                this.title = `${prefix}: ${shorten(selectedTitle)}`;
             } else {
-                this.title = `Choice: ${shorten(selectedTitle)} (${repeatIndex}/${changeEvery})`;
+                this.title = `${prefix}: ${shorten(selectedTitle)} (${repeatIndex}/${changeEvery})`;
             }
 
             this.setDirtyCanvas?.(true, true);
