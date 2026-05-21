@@ -1,42 +1,56 @@
-## v0.3.0
+## v0.4.0
 
-- 出力を整理
-  - `selected_text` : プロンプト向け出力
-  - `selected_text_safe` : ファイル名向け出力
-- 明示的な空候補 `()` に対応
-  - `()` が選ばれた場合、プロンプト向け出力は空文字になり、ファイル名向け出力は `empty` になります
+`Prompt Random Choice Ex` を追加しました。
 
-`ComfyUI-PromptRandomChoice` は、プロンプト候補リストから実行のたびにランダムで1項目を選び、ポジティブプロンプトなどへ追加しやすい形で出力する ComfyUI カスタムノードです。
+## 追加
 
-## 主な機能
+- `Prompt Random Choice Ex`
+  - `Prompt Random Choice` と同じフラット候補リストに対応
+  - `{}` による入れ子の候補展開に対応
+  - すべての葉候補へ展開してから、最後に1回だけランダム選択
+  - 展開結果を親要素へ `, ` で接続
+  - 展開済み候補リストを `options_text` 単位でキャッシュ
+  - `selected_text` / `selected_text_safe` を出力
+  - `(){...}` のような空親グループに対応
+    - 親要素 `()` は出力されません
+    - 子要素だけが候補になります
 
-- プロンプト候補から実行ごとにランダムで1項目を選択
-- 候補は `|` または実際の改行で区切り
-- 候補の前後にある空白や `,` を自動で trim
-- 選ばれた候補を `selected_text` として通常の文字列で出力
-- ファイル名向けに安全化した `selected_text_safe` を出力
-- `change_every` に対応
-  - `1` なら毎回選び直し
-  - `3` なら同じ候補を3回返してから次を選択
-- 実行中の選択結果をノードタイトルに表示
-  - 例: `Choice: coffee shop`
-  - 例: `Choice: lake (2/3)`
-- 複数ノード設置に対応
-  - 背景用、時間帯用、天気用などを別々にランダム化可能
-- 同じ候補を複数回書くことで、選ばれやすさを調整可能
-  - 例: `day|day|day|sunset|night`
-- 明示的な空候補 `()` に対応
-  - `()` が選ばれた場合、プロンプト向け出力は空文字になり、ファイル名向け出力は `empty` になります
+## 例
 
-## 注意
+```text
+town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
+```
+これは、内部的には次の候補へ展開されます。
 
-区切り文字は **実際の改行** または **`|`** です。
+```text
+town
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+この5候補から1つが選ばれます。
+<br/>
 
-`,` は区切り文字ではありません。  
-ただし、各候補の前後に付いている `,` は自動で取り除きます。
 
-詳しい使い方は README.md を参照してください。
+親要素 `()` の例
+```text
+(){
+  white day
+  wedding ceremony
+  birthday party
+}
+```
 
-## ライセンス
+内部的には次の候補へ展開されます。
 
-GPL-3.0
+```text
+white day
+wedding ceremony
+birthday party
+
+## 備考
+
+- `Prompt Random Choice Ex` は、すべての葉候補へ展開してから最後に1回だけランダム選択します
+- 展開済み候補リストは `options_text` 単位でキャッシュします
+- 通常の `Prompt Random Choice` は、フラットな候補選択用としてそのまま残しています

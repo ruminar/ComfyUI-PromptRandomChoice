@@ -9,6 +9,22 @@
 フロー内に複数個置いても、それぞれ独立して動くぞ。
 
 
+## v0.4.0
+
+`Prompt Random Choice Ex` を追加したのじゃ。
+
+- `Prompt Random Choice`
+  - フラットな候補リストから1つ選ぶノード
+- `Prompt Random Choice Ex`
+  - フラット候補に加えて、`{}` による入れ子の候補展開に対応したノード
+  - 先にすべての葉候補へ展開し、最後に1回だけランダム選択します
+  - 展開済み候補リストは `options_text` が変わるまでキャッシュします
+
+どちらもノードとしての出力は同じじゃ。
+
+- `selected_text`
+- `selected_text_safe`
+
 ## 特徴
 
 - **実行ごとにランダム選択**
@@ -38,6 +54,34 @@
 - **明示的な空候補 `()` に対応**
   - `()` が選ばれた場合、プロンプト向け出力は空文字に、ファイル名向け出力は `empty` になるのじゃ。
 
+## Prompt Random Choice Ex の追加要素
+
+- **フラット候補に加えて、`{}` による入れ子の候補展開に対応**
+  - しかも、ComfyUIの標準記法と異なり、`{}` 内を入れ子にできるのじゃ。
+    - `{}` 内の要素は内側から解釈され、選択項目がカンマで前後に接続される。
+  - `|` と改行の両方を区切りとして扱うので、混在していても動くぞ。
+  - 区切り文字が連続して出現した場合は、候補から取り除かれることに注意じゃ。
+    - 明示的に空白文字列を候補として返却させたい場合は、明示的に `()` と指定するのじゃ。
+    
+ここは実例を見てもらった方が話が早そうじゃ。
+```text
+town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
+```
+
+これは、内部的には次の候補へ展開され、キャッシュされるのじゃ。
+
+```text
+town
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
+この5候補から1つが選ばれるのじゃ。<br/>
+展開後の最終候補が、すべて等しい確率で選ばれるようにしてるのじゃな。
+<br/>
+
 ## 導入方法
 
 ComfyUIの `custom_nodes` ディレクトリで、以下のコマンドを打ち込むのじゃ！
@@ -58,7 +102,7 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 <img width="544" height="526" alt="image" src="https://github.com/user-attachments/assets/d230659e-f008-4232-955d-1fa6fdf299fa" /><br/><br/>
 
 <img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
-※ 設定後は折りたたんで使うのもおすすめです
+※ 設定後は折りたたんで使うのもおすすめなのじゃ。
 
 ## 入力例
 
@@ -119,6 +163,8 @@ day|day|day|sunset|night
 
 昼を多めに出したい、たまに夕方や夜も混ぜたい、という時に便利じゃ。
 
+<br/>
+
 ## 仕様
 
 - `|` または実際の改行で分割
@@ -130,6 +176,83 @@ day|day|day|sunset|night
 - `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
 - 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
 
+## Prompt Random Choice
+
+候補リストから1つ選びます。
+
+```text
+town|park|lake|coffee shop
+```
+
+`()` は明示的な空候補です。
+
+```text
+()|(full body:0.9)
+```
+
+## Prompt Random Choice Ex
+
+`Prompt Random Choice` と同じフラットな候補リストをそのまま使えます。
+
+```text
+town|park|lake|coffee shop
+```
+
+さらに、候補の中に `{}` を書くことで、選ばれた候補にだけ追加候補をぶら下げられます。
+
+```text
+town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
+```
+
+この入力は、内部的には次の候補へ展開されます。
+
+```text
+town
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
+この5候補から1つが選ばれます。
+
+### 複数行の Ex 例
+
+```text
+zoo{
+  animals{
+    birds
+    penguins
+  }
+  aquarium{
+    fish
+    jellyfish
+  }
+}
+```
+
+出力例:
+
+```text
+zoo, animals, birds
+zoo, animals, penguins
+zoo, aquarium, fish
+zoo, aquarium, jellyfish
+```
+
+### Ex のルール
+
+- 選択候補の区切り文字は、実際の改行 または `|`
+- 空候補は無視
+- `()` は明示的な空候補
+- `{}` の内部も、実際の改行 または `|` で候補分割
+- `{}` は最内側からすべての葉候補へ展開
+- 展開結果は親要素へ `, ` で接続
+- 最終候補リストから最後に1回だけランダム選択
+- 展開済み候補リストは `options_text` が変わるまでキャッシュ
+- 展開候補数と展開回数には安全上限があります
+- リテラルの `{` / `}` をプロンプト文字として使う用途は非対応
+
 ## 出力
 
 - `selected_text`  
@@ -139,6 +262,14 @@ day|day|day|sunset|night
 - `selected_text_safe`  
   ファイル名向けに安全化した出力です。  
   `selected_text` が空なら `empty` を返します。
+
+## 推奨構成
+
+`selected_text` を kjnodes の `Join String Multi` などへ接続し、区切り文字は結合ノード側で管理するのがおすすめじゃ。
+
+複数の `Prompt Random Choice` / `Prompt Random Choice Ex` を並べることで、背景・時間帯・天気・構図などを別々にランダム化するのじゃ。
+
+ただし、Ex はすべての要素を1つにまとめるためのノードではなく、`zoo` の時だけ動物候補を追加するような、親子関係のある候補を扱うためのノードとして使うのがおすすめじゃ。
 
 <br/>
 
@@ -176,92 +307,634 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 <img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
 
+EX版
+<img width="1122" height="1402" alt="PromptRandomChoiceEx説明画像" src="https://github.com/user-attachments/assets/f45a44b7-5692-4d98-854a-7736677e1f5a" />
 
-## 付録
+## コピペ用おすすめ候補リスト
 
-背景候補
+### 背景
 
 ```text
 Indoor,
 girl's room,
+bedroom,
+living room,
+kitchen,
+dining room,
+bathroom,
+attic,
+basement,
 coffee shop,
+cafe terrace,
 library,
+private library,
 classroom,
+music room,
+science room,
+computer room,
+school infirmary,
+gymnasium,
 office,
+meeting room,
+conference room,
 laboratory,
+medical room,
+art studio,
 art gallery,
 museum,
+aquarium,
+planetarium,
+observatory interior,
 bookstore,
 bakery,
+flower shop,
+convenience store,
+supermarket,
 restaurant,
+bar,
+diner,
+karaoke room,
+arcade,
+game center,
+cinema,
 concert hall,
 theater,
+dance studio,
 school hallway,
+locker room,
+stairwell,
+elevator hall,
 greenhouse,
-observatory,
+train interior,
+subway interior,
+airport terminal,
+shopping mall,
+hotel room,
+lobby,
+chapel interior,
+
 Outdoor,
-City,
+city,
 town,
+downtown,
+residential area,
 park,
+playground,
+plaza,
 rooftop,
+balcony,
+terrace,
 train station,
+bus stop,
+airport runway,
 shopping street,
 courtyard,
 bridge,
+crosswalk,
+intersection,
 riverside,
+canal,
 harbor,
+port,
+boardwalk,
 marketplace,
+festival street,
+food stall area,
 alley,
+back alley,
 village,
+suburban street,
+schoolyard,
+campus,
+parking lot,
+construction site,
+amusement park,
+theme park,
+zoo,
+stadium exterior,
+cemetery,
+clock tower,
+lighthouse,
+windmill,
+waterfront,
+
 Nature,
 lake,
+pond,
+waterfall,
+river,
+stream,
 flower garden,
+rose garden,
 forest,
+bamboo forest,
+pine forest,
+rainforest,
 grasslands,
+meadow,
+savanna,
 sea,
+ocean,
+coral reef,
 mountain,
+mountain path,
+hilltop,
+valley,
+cliff,
 flower field,
+sunflower field,
+lavender field,
 beach,
+shore,
 island,
+tropical island,
 cave,
+crystal cave,
 botanical garden,
+jungle,
+swamp,
+marsh,
+desert,
+oasis,
+snowfield,
+glacier,
+ice cave,
+volcanic area,
+hot spring,
+starry sky,
+night sky,
+aurora,
+
 Traditional,
-Fantasy-ish,
 Japanese garden,
 shrine,
 temple,
+tea house,
+tatami room,
+engawa,
+onsen,
+ryokan,
+festival grounds,
+torii gate,
+bamboo grove path,
 castle,
 fortress,
 palace,
 ruins,
+old town,
+stone pavement,
+pagoda,
+dojo,
+samurai residence,
+courtyard garden,
 ```
 
-時刻
+### 時刻
 ```text
-day|day|day|morning|sunset|night
+()|day|day|day|morning|sunset|night
 ```
 
-天候
+### 天候
 ```text
-()|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow
+()|Strong sunshine|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow|Rainbow after Rain|storm, thunder
 ```
 
-光
+### 光
 ```text
 ()|soft lighting|warm lighting|natural lighting|(backlighting:0.8)|(dramatic lighting:0.8)|(cinematic lighting:0.8)
 ```
 
-姿勢、視線、動作
+### 姿勢、視線、動作
 ```text
-()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping|running|skipping|looking up
+()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping high|running|skipping|looking up
 ```
 
-表情
+### 表情
 ```text
 ()|smiling|gentle smile|serious expression|surprised expression|slightly surprised|shy expression|happy expression|smiling, open mouth|slightly open mouth|closed-mouth smile
 ```
 
-構図
+### 構図
 ```text
 ()|(face close-up:0.9)|upper body|upper body|full body|full body|full body|full body|full body|wide shot|(from side:0.8)|(from above:0.8)|(low angle:0.8)|(from behind, looking back:0.8)
+```
+
+### 背景 Ex 版
+
+背景は、項目ごとにまとめてあるから、全部くっつけて1つの背景ノードにするのも、<br/>
+それぞれ別ノードにして組み合わせるのも、おぬしの好きな方を選べるようにしたぞ！<br/>
+同じ項目を繰り返したり、不要な項目を削除したりして、おぬし好みのプロンプトに育てておくれなのじゃ。
+
+#### Ex 標準背景
+```text
+indoor{
+  girl's room,
+  bedroom,
+  living room,
+  kitchen,
+  dining room,
+  bathroom,
+  attic,
+  basement,
+  coffee shop,
+  cafe terrace,
+  library,
+  private library,
+  classroom,
+  music room,
+  science room,
+  computer room,
+  school infirmary,
+  gymnasium,
+  office,
+  meeting room,
+  conference room,
+  laboratory,
+  medical room,
+  art studio,
+  art gallery,
+  museum,
+  aquarium,
+  planetarium,
+  observatory interior,
+  bookstore,
+  bakery,
+  flower shop,
+  convenience store,
+  supermarket,
+  restaurant,
+  bar,
+  diner,
+  karaoke room,
+  arcade,
+  game center,
+  cinema,
+  concert hall,
+  theater,
+  dance studio,
+  school hallway,
+  locker room,
+  stairwell,
+  elevator hall,
+  greenhouse,
+  train interior,
+  subway interior,
+  airport terminal,
+  shopping mall,
+  hotel room,
+  lobby,
+  chapel interior,
+}
+Outdoor{
+  city,
+  town,
+  downtown,
+  residential area,
+  park,
+  playground,
+  plaza,
+  rooftop,
+  balcony,
+  terrace,
+  train station,
+  bus stop,
+  airport runway,
+  shopping street,
+  courtyard,
+  bridge,
+  crosswalk,
+  intersection,
+  riverside,
+  canal,
+  harbor,
+  port,
+  boardwalk,
+  marketplace,
+  festival street,
+  food stall area,
+  alley,
+  back alley,
+  village,
+  suburban street,
+  schoolyard,
+  campus,
+  parking lot,
+  construction site,
+  amusement park,
+  theme park,
+  zoo,
+  stadium exterior,
+  cemetery,
+  clock tower,
+  lighthouse,
+  windmill,
+  waterfront,
+}
+Nature{
+  lake,
+  pond,
+  waterfall,
+  river,
+  stream,
+  flower garden,
+  rose garden,
+  forest,
+  bamboo forest,
+  pine forest,
+  rainforest,
+  grasslands,
+  meadow,
+  savanna,
+  sea,
+  ocean,
+  coral reef,
+  mountain,
+  mountain path,
+  hilltop,
+  valley,
+  cliff,
+  flower field,
+  sunflower field,
+  lavender field,
+  beach,
+  shore,
+  island,
+  tropical island,
+  cave,
+  crystal cave,
+  botanical garden,
+  jungle,
+  swamp,
+  marsh,
+  desert,
+  oasis,
+  snowfield,
+  glacier,
+  ice cave,
+  volcanic area,
+  hot spring,
+  starry sky,
+  night sky,
+  aurora,
+}
+traditional{
+  Japanese garden,
+  shrine,
+  temple,
+  tea house,
+  tatami room,
+  engawa,
+  onsen,
+  ryokan,
+  festival grounds,
+  torii gate,
+  bamboo grove path,
+  castle,
+  fortress,
+  palace,
+  ruins,
+  old town,
+  stone pavement,
+  pagoda,
+  dojo,
+  samurai residence,
+  courtyard garden,
+}
+```
+
+#### Ex ファンタジー特盛背景
+```text
+Fantasy{
+  (),
+  magic library,
+  alchemy workshop,
+  wizard tower,
+  enchanted forest,
+  fairy garden,
+  floating island,
+  sky castle,
+  crystal palace,
+  ancient ruins,
+  mystic cave,
+  dragon's lair,
+  underground city,
+  sacred spring,
+  giant tree,
+  mirror lake,
+  celestial garden,
+  forgotten temple,
+  phantom town,
+  clockwork city,
+  throne room,
+  dungeon,
+  cathedral,
+  portal site,
+  magic academy,
+  sorcerer's tower,
+  witch's cottage,
+  fairy village,
+  elven forest,
+  dwarf mine,
+  crystal cave,
+  ancient altar,
+  holy sanctuary,
+  forbidden library,
+  sky temple,
+  floating garden,
+  moonlit lake,
+  starlight forest,
+  enchanted castle,
+  royal palace,
+  hidden village,
+  ancient labyrinth,
+  monster arena,
+  summoning chamber,
+}
+Japanese-style Fantasy{
+  (),
+  moonlit shrine,
+  mystic shrine,
+  ancient shrine,
+  forgotten shrine,
+  mountain shrine,
+  forest shrine,
+  torii gate,
+  spirit forest,
+  youkai village,
+  oni castle,
+  kitsune shrine,
+  tanuki forest,
+  sacred mountain,
+  hidden onsen,
+  samurai castle,
+  ninja village,
+  abandoned temple,
+  bamboo spirit path,
+  misty bamboo forest,
+  sakura spirit realm,
+  red torii path,
+  shrine festival night,
+  haunted Japanese mansion,
+  old samurai residence,
+  floating lantern river,
+  dragon god shrine,
+  celestial fox shrine,
+  underworld gate,
+}
+Chinese-style Fantasy{
+  (),
+  ancient Chinese palace,
+  imperial palace,
+  jade palace,
+  celestial palace,
+  xianxia sect,
+  martial arts sect,
+  mountain cultivation temple,
+  immortal mountain,
+  cloud sea,
+  bamboo mountain path,
+  lotus pond,
+  moon gate garden,
+  Chinese courtyard,
+  ancient Chinese city,
+  lantern street,
+  water town,
+  stone bridge town,
+  dragon palace,
+  phoenix palace,
+  taoist temple,
+  misty peak,
+  sword cultivation arena,
+  heavenly staircase,
+  jade pavilion,
+  floating pagoda,
+  immortal cave,
+  spirit spring,
+  celestial river,
+}
+Fantasy-ish{
+  (),
+  gothic castle,
+  vampire mansion,
+  haunted mansion,
+  dark cathedral,
+  graveyard,
+  crypt,
+  necromancer's lair,
+  witch market,
+  night carnival,
+  dream world,
+  mirror world,
+  toy kingdom,
+  candy kingdom,
+  steampunk city,
+  airship dock,
+  mechanical tower,
+  clock tower interior,
+  abandoned laboratory,
+  magical observatory,
+  starship temple,
+  ancient machine room,
+  lost civilization,
+  desert ruins,
+  sunken city,
+  underwater palace,
+  ice palace,
+  volcanic fortress,
+  shadow realm,
+  celestial battlefield,
+}
+```
+
+#### Ex 季節/イベント背景
+```text
+Spring{
+  (),
+  cherry blossoms,
+  sakura avenue,
+  hanami,
+  spring festival,
+  graduation ceremony,
+  entrance ceremony,
+  easter,
+  flower viewing picnic,
+  rainy season,
+  hydrangea garden,
+  children's day,
+  doll festival,
+  easter egg hunt,
+}
+Summer{
+  (),
+  summer festival,
+  festival night,
+  food stalls,
+  lantern festival,
+  bon festival,
+  fireworks,
+  fireworks festival,
+  poolside,
+  water park,
+  beach party,
+  tropical vacation,
+  campground,
+  tanabata,
+  tanabata festival,
+  star festival,
+}
+Autumn{
+  (),
+  autumn leaves,
+  maple forest,
+  harvest festival,
+  moon viewing,
+  halloween,
+  halloween party,
+  halloween street,
+  pumpkin patch,
+  haunted house,
+  masquerade party,
+  autumn festival,
+  thanksgiving,
+}
+Winter{
+  (),
+  snowy town,
+  snow festival,
+  ice skating rink,
+  christmas,
+  christmas market,
+  christmas tree,
+  christmas party,
+  illuminations,
+  winter holiday,
+  new year,
+  new year's shrine visit,
+  first sunrise,
+  snowy shrine,
+  winter illuminations,
+  new year's festival,
+  new year's eve party,
+  winter market,
+  christmas dinner,
+  holiday shopping street,
+  valentine's day,
+}
+(){
+  white day,
+  wedding ceremony,
+  birthday party,
+  anniversary,
+  school festival,
+  cultural festival,
+  sports festival,
+  idol concert,
+  live event,
+  tea party,
+  garden party,
+  picnic,
+  parade,
+  carnival,
+  temple fair,
+}
 ```
