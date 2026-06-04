@@ -9,6 +9,15 @@
 フロー内に複数個置いても、それぞれ独立して動くぞ。
 
 
+## v0.5.0
+
+`Safe Random Seed` を追加したのじゃ。
+
+- `Safe Random Seed`
+  - KSampler向けに、0以上のランダムseedだけを出力する小型ノード
+  - Python側で `secrets` を使って発番します
+  - 実行後、ノードタイトルを `Seed: 4897362896` のように書き換えます
+
 ## v0.4.0
 
 `Prompt Random Choice Ex` を追加したのじゃ。
@@ -44,6 +53,10 @@
 - **現在の選択結果をタイトル表示**
   - 実行時にノードタイトルが `Choice: coffee shop` のように更新されるぞ。
   - KSamplerのプレビューと見比べやすいのじゃ。
+
+- **KSampler向けの安全なランダムseed生成**
+  - `Safe Random Seed` は、0以上のINTだけを出力するぞ。
+  - 実行後、ノードタイトルが `Seed: 4897362896` のように更新されるのじゃ。
 
 - **複数設置に対応**
   - 背景用、時間帯用、天気用など、複数ノードを置いてそれぞれ別々に使えるぞ。
@@ -175,6 +188,23 @@ day|day|day|sunset|night
 - `change_every` が 1 なら毎回選び直す
 - `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
 - 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
+- `Safe Random Seed` は実行時にタイトルへ `Seed: 4897362896` のように表示する
+
+## Safe Random Seed
+
+KSampler向けに、0以上のランダムseedを1つ生成します。
+汎用の整数Primitiveを `randomize` すると負数が出る場合がありますが、このノードは負数を出しません。
+SDE系サンプラーで `expected non-negative integer` が出る事故を避けるための小さな保険じゃ。
+
+- 入力はありません
+- 出力は `seed` だけです
+- 乱数はComfyUIサーバー側、Pythonの `secrets` で生成します
+- 発番はノード実行時です
+- 出力値の範囲は `0` から `2^53 - 1` です
+- 同じノードの出力を複数箇所へ接続した場合、同じseed値を配ります
+- 別々のseedが欲しい場合は、`Safe Random Seed` ノードを複数置いてください
+- 前回出力されたseed値は、次回の乱数生成には影響しません
+- 実行後、ノードタイトルを `Seed: 4897362896` のように書き換えます
 
 ## Prompt Random Choice
 

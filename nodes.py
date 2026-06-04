@@ -30,6 +30,7 @@ amusement park{ferris wheel|carousel|balloons}
 
 MAX_EXPAND_STEPS = 64
 MAX_EXPANDED_OPTIONS = 4096
+MAX_SAFE_SEED = 2**53 - 1
 
 
 def _split_options(options_text: str):
@@ -427,12 +428,43 @@ class PromptRandomChoiceEx(_RandomChoiceStateMixin):
         }
 
 
+class SafeRandomSeed:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {},
+        }
+
+    RETURN_TYPES = ("INT",)
+    RETURN_NAMES = ("seed",)
+    FUNCTION = "generate"
+    CATEGORY = "utils/random"
+
+    @classmethod
+    def IS_CHANGED(cls, **kwargs):
+        # Force re-execution for each queued run.
+        return secrets.token_hex(16)
+
+    def generate(self):
+        seed = secrets.randbelow(MAX_SAFE_SEED + 1)
+
+        return {
+            "ui": {
+                "seed_title": [f"Seed: {seed}"],
+                "seed_value": [str(seed)],
+            },
+            "result": (seed,),
+        }
+
+
 NODE_CLASS_MAPPINGS = {
     "PromptRandomChoice": PromptRandomChoice,
     "PromptRandomChoiceEx": PromptRandomChoiceEx,
+    "SafeRandomSeed": SafeRandomSeed,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "PromptRandomChoice": "Prompt Random Choice",
     "PromptRandomChoiceEx": "Prompt Random Choice Ex",
+    "SafeRandomSeed": "Safe Random Seed",
 }
