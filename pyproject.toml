@@ -1,16 +1,18 @@
 [project]
 name = "prompt-random-choice"
 version = "0.5.0"
-description = "This is a ComfyUI custom node that randomly selects one item from a list of prompt suggestions each time it is executed."
+description = "A ComfyUI custom node that randomly selects one item from a list of prompt suggestions each time it is executed."
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = []
 
 [project.urls]
 Repository = "https://github.com/ruminar/ComfyUI-PromptRandomChoice"
+Documentation = "https://github.com/ruminar/ComfyUI-PromptRandomChoice/blob/main/README.md"
 "Bug Tracker" = "https://github.com/ruminar/ComfyUI-PromptRandomChoice/issues"
 
 [tool.comfy]
 PublisherId = "ruminar"
 DisplayName = "Prompt Random Choice"
-Icon = "https://github.com/ruminar/ComfyUI-PromptRandomChoice/main/icon.png"
+Icon = "https://raw.githubusercontent.com/ruminar/ComfyUI-PromptRandomChoice/main/icon.png"
