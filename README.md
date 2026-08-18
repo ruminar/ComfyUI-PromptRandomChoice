@@ -51,7 +51,7 @@
   のような書き方でも大丈夫じゃ。
 
 - **現在の選択結果をタイトル表示**
-  - 実行時にノードタイトルが `Choice: coffee shop` のように更新されるぞ。
+  - 実行時にノードタイトルが `Ch: coffee shop` のように更新されるぞ。
   - KSamplerのプレビューと見比べやすいのじゃ。
 
 - **KSampler向けの安全なランダムseed生成**
@@ -187,7 +187,7 @@ day|day|day|sunset|night
 - `()` は明示的な空候補として扱う
 - `change_every` が 1 なら毎回選び直す
 - `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
-- 実行時にタイトルへ `Choice: lake` や `Choice: (empty) (2/3)` のように表示する
+- 実行時にタイトルへ `Ch: lake` や `Ch: (empty) (2/3)` のように表示する
 - `Safe Random Seed` は実行時にタイトルへ `Seed: 4897362896` のように表示する
 
 ## Safe Random Seed
@@ -325,7 +325,7 @@ zoo, aquarium, jellyfish
 
 - さらに、`PromptRandomChoice` の段階で確定した候補はノードタイトルに表示されます。
   - KSamplerのプレビューと見比べながら、現在どの候補が使われているかを確認できます。
-  - `change_every` 指定時には、`Choice: lake (2/3)` のように進捗も表示されます。
+  - `change_every` 指定時には、`Ch: lake (2/3)` のように進捗も表示されます。
 
 <br/>
 
