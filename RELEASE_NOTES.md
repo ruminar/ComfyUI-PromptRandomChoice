@@ -1,3 +1,21 @@
+## v0.5.0
+
+`Safe Random Seed` を追加しました。
+
+## 追加
+
+- `Safe Random Seed`
+  - KSampler向けに、0以上のランダムseedだけを出力する小型ノード
+  - Python側の `secrets` を使って発番
+  - 実行後、ノードタイトルを `Seed: 4897362896` のように更新
+  - 同じノードの出力を複数箇所へ接続した場合は、同じseed値を配布
+
+## 変更
+
+- タイトル表示用JavaScriptで、`Prompt Random Choice Ex` の短縮文字数設定が反映されるように修正
+
+---
+
 ## v0.4.0
 
 `Prompt Random Choice Ex` を追加しました。

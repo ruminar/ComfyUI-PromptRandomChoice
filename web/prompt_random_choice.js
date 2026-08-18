@@ -4,6 +4,7 @@ const EXTENSION_NAME = "ruminar.PromptRandomChoice";
 const NODE_NAMES = new Set([
     "PromptRandomChoice",
     "PromptRandomChoiceEx",
+    "SafeRandomSeed",
 ]);
 
 function shorten(text, maxLength = 40) {
@@ -30,14 +31,22 @@ app.registerExtension({
         nodeType.prototype.onExecuted = function (message) {
             originalOnExecuted?.apply(this, arguments);
 
+            if (nodeName === "SafeRandomSeed") {
+                this.title = String(message?.seed_title?.[0] ?? "Seed: ?");
+
+                this.setDirtyCanvas?.(true, true);
+                app.graph?.setDirtyCanvas?.(true, true);
+                return;
+            }
+
             const selectedTitle = message?.selected_text_title?.[0] ?? "(empty)";
             const repeatIndex = Number(message?.repeat_index?.[0] ?? 0);
             const changeEvery = Number(message?.change_every?.[0] ?? 1);
 
             if (changeEvery <= 1) {
-                this.title = `${prefix}: ${shorten(selectedTitle)}`;
+                this.title = `${prefix}: ${shorten(selectedTitle, maxTitleLength)}`;
             } else {
-                this.title = `${prefix}: ${shorten(selectedTitle)} (${repeatIndex}/${changeEvery})`;
+                this.title = `${prefix}: ${shorten(selectedTitle, maxTitleLength)} (${repeatIndex}/${changeEvery})`;
             }
 
             this.setDirtyCanvas?.(true, true);
