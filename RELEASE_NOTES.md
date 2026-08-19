@@ -1,3 +1,35 @@
+## v0.6.0
+
+候補をQueue投入後も編集できるRuntime版と、候補制御記号を追加しました。
+
+## 追加
+
+- `Runtime Prompt Random Choice`
+- `Runtime Prompt Random Choice Ex`
+- 全選択ノードで、先頭 `#` の候補をコメントとして除外
+- Runtime版限定で、先頭 `!` の候補を次回再選択時に強制選択
+  - 同じ階層に複数ある場合は最初の1件を使用
+  - `!()` は空文字を強制選択
+- Runtime入力欄の `EDITING / SYNCING / LIVE / SYNC ERROR` 表示
+- Runtime ExのSoft Incomplete / Hard Error表示
+
+## 変更
+
+- Runtimeの候補編集は現在の`change_every`保持期間へ割り込まず、次回再選択時に反映
+- Runtimeのtextareaがノードの高さ変更へ追従するように修正
+- 全ノードの追加メニューをトップ階層の `Prompt Random Choice` カテゴリへ統一
+- Exは最終葉候補の均等確率を維持しながら、葉数を使って1経路だけを選択
+- `selected_text_safe`でWindows予約名を回避し、長さを制限
+
+## 互換性に関する注意
+
+- 従来版でも先頭 `#` は通常候補ではなくコメントになります
+- Exの `A{B|C}{D|E}` のような隣接子グループは、直積を防ぐため展開前にエラーになります
+- Exの波括弧不一致は明示的な構文エラーになります
+- 独立したランダム軸は別のExノードへ分け、String Joinで結合してください
+
+---
+
 ## v0.5.0
 
 `Safe Random Seed` を追加しました。
@@ -66,6 +98,7 @@ zoo, aquarium, jellyfish
 white day
 wedding ceremony
 birthday party
+```
 
 ## 備考
 

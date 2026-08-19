@@ -1,7 +1,7 @@
 [project]
 name = "prompt-random-choice"
-version = "0.5.0"
-description = "A ComfyUI custom node that randomly selects one item from a list of prompt suggestions each time it is executed."
+version = "0.6.0"
+description = "A ComfyUI custom node for random and runtime selection from prompt candidate lists, designed to pair with ComfyUI-StringJoinTools for live prompt composition during queued generation."
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"
