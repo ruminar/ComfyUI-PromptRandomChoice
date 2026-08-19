@@ -4,6 +4,8 @@ const EXTENSION_NAME = "ruminar.PromptRandomChoice";
 const NODE_NAMES = new Set([
     "PromptRandomChoice",
     "PromptRandomChoiceEx",
+    "RuntimePromptRandomChoice",
+    "RuntimePromptRandomChoiceEx",
     "SafeRandomSeed",
 ]);
 
@@ -24,8 +26,14 @@ app.registerExtension({
         }
 
         const nodeName = String(nodeData?.name ?? "");
-        const prefix = nodeName === "PromptRandomChoiceEx" ? "Ex" : "Ch";
-        const maxTitleLength = nodeName === "PromptRandomChoiceEx" ? 36 : 40;
+        const prefixes = {
+            PromptRandomChoice: "Ch",
+            PromptRandomChoiceEx: "Ex",
+            RuntimePromptRandomChoice: "Rt",
+            RuntimePromptRandomChoiceEx: "RtEx",
+        };
+        const prefix = prefixes[nodeName] ?? "Ch";
+        const maxTitleLength = nodeName.includes("Ex") ? 36 : 40;
         const originalOnExecuted = nodeType.prototype.onExecuted;
 
         nodeType.prototype.onExecuted = function (message) {
