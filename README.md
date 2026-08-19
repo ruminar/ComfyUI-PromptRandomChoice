@@ -334,6 +334,8 @@ A{B|C}{D|E}
 
 ## Runtime Prompt Random Choice
 
+<img width="699" height="420" alt="image" src="https://github.com/user-attachments/assets/fea5989f-6348-404f-87c5-aa5506113b71" />
+
 `Runtime Prompt Random Choice` と `Runtime Prompt Random Choice Ex` は、実行時点でComfyUIサーバーが受理済みの最新候補テキストを参照します。候補入力欄には同期状態が表示されます。
 
 - `EDITING`: 編集中または送信待ち
@@ -443,6 +445,10 @@ GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
 
 EX版
 <img width="1122" height="1402" alt="PromptRandomChoiceEx説明画像" src="https://github.com/user-attachments/assets/f45a44b7-5692-4d98-854a-7736677e1f5a" />
+
+Runtime版
+<img width="1055" height="1491" alt="image" src="https://github.com/user-attachments/assets/b766c03e-9d95-4e88-9bd2-1b448f4e21c7" />
+
 
 ## コピペ用おすすめ候補リスト
 
