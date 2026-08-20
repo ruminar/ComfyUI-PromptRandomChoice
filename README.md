@@ -44,8 +44,8 @@
   - フラットな候補リストから1つ選ぶノード
 - `Prompt Random Choice Ex`
   - フラット候補に加えて、`{}` による入れ子の候補展開に対応したノード
-  - 先にすべての葉候補へ展開し、最後に1回だけランダム選択します
-  - 展開済み候補リストは `options_text` が変わるまでキャッシュします
+  - 最終葉候補が均等確率になるように、葉数を数えて1経路だけを選択します
+  - 完成文字列を事前に全列挙せず、展開済み文字列の大量生成を避けます
 
 どちらもノードとしての出力は同じじゃ。
 
@@ -133,17 +133,121 @@ git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 
 ノード追加メニューの `Prompt Random Choice` カテゴリに、通常版・Runtime版・Safe Random Seedがまとまっています。
 
-1. `Prompt Random Choice` ノードを置く
-2. `options_text` に候補を入れる (入力例を参照)
+まず、用途に合うノードを選びます。
+
+| やりたいこと | 使うノード |
+| --- | --- |
+| 単純な候補リストから1つ選びたい | `Prompt Random Choice` |
+| 親子関係のある候補を `{}` で書きたい | `Prompt Random Choice Ex` |
+| キュー実行中に単純な候補リストを編集したい | `Runtime Prompt Random Choice` |
+| キュー実行中に `{}` を含む候補リストを編集したい | `Runtime Prompt Random Choice Ex` |
+
+1. 上の表から、用途に合うノードを置く
+2. `options_text` に候補を入れる（[入力例](#入力例)を参照）
 3. 必要に応じて `change_every` を選ぶ
-4. `selected_text` を `Join String Multi` などの文字列結合ノードへ繋ぎ、ポジティブプロンプトへ足す
+4. `selected_text` をString Join系の文字列結合ノードへ繋ぎ、ポジティブプロンプトへ足す
 5. キューを好きなだけ積む
+
+`change_every = 1` なら1ジョブごとに選び直し、`change_every = 3` なら同じ候補を3ジョブ続けて使用します。迷った時は `1` のままで大丈夫じゃ。
 
 <br/>
 <img width="544" height="526" alt="image" src="https://github.com/user-attachments/assets/d230659e-f008-4232-955d-1fa6fdf299fa" /><br/><br/>
 
 <img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
 ※ 設定後は折りたたんで使うのもおすすめなのじゃ。
+
+### Runtime版で、生成を続けながら候補を調整する
+
+ランダム抽選のままでは、調整したい候補が次にいつ選ばれるか分かりません。Runtime版では、半角の `!` を候補の先頭へ付けることで、その候補を一時的に固定できます。従来版の `Prompt Random Choice` / `Prompt Random Choice Ex` では、`!` は固定記号ではなく通常文字として扱われます。
+
+この機能を使うと、次の流れでキューを止めずに候補を育てられます。
+
+```text
+ランダム候補から調整したいものを決める
+  ↓
+先頭へ ! を付けて一時固定する
+  ↓
+生成結果を見ながら候補を書き換える
+  ↓
+納得できたら ! を外し、ランダム候補へ戻す
+```
+
+リアルタイム調整を始める時は、先に `change_every = 1` を設定してからキューへ投入してください。これで、入力欄が `LIVE` になった後の次のジョブから、最新候補を評価します。すでに実行中のジョブへ途中から反映するものではありません。
+
+#### 1. まずは通常の候補を用意する
+
+改行、または `|` が候補の区切りです。
+
+```text
+black hair, straight long hair,
+dark brown hair, short cut,
+blonde hair, long hair,
+```
+
+#### 2. 調整したい候補を `!` で固定する
+
+金髪だけを確認したい場合は、候補のtrim後の先頭へ `!` を付けます。`!` 自体は出力文字列に含まれません。
+
+```text
+black hair, straight long hair,
+dark brown hair, short cut,
+!blonde hair, long hair,
+```
+
+Runtime版は、同じ階層に `!` 候補が複数ある場合、上から最初の1件を選びます。
+
+#### 3. キューを動かしたまま内容を調整する
+
+入力欄の表示が `LIVE` になったことを確認します。そのまま生成結果を見ながら、固定中の候補を書き換えます。
+
+```text
+black hair, straight long hair,
+dark brown hair, short cut,
+!gold yellow hair, very long hair, blue eyes, small ahoge, side braid, black ribbon,
+```
+
+`change_every = 1` なら、サーバーが受理した最新内容が次のジョブの選択時に使われます。キューをいったん削除して積み直す必要はありません。
+
+#### 4. 調整が終わったら `!` を外す
+
+納得できる結果になったら `!` を外します。固定されていた内容が、再び通常のランダム候補の1つとして選ばれるようになります。
+
+```text
+black hair, straight long hair,
+dark brown hair, short cut,
+gold yellow hair, very long hair, blue eyes, small ahoge, side braid, black ribbon,
+```
+
+#### `change_every` を2以上にした場合
+
+`change_every` は、現在の選択結果を何回使い続けるかを決めます。たとえば `change_every = 3` の場合、途中で編集したり `!` を追加したりしても、現在の結果を3回出力し終えるまでは切り替わりません。
+
+```text
+実行1: Aを選択
+        ↓ Runtimeで !B を追加
+実行2: A
+実行3: A
+実行4: 最新候補を評価してBを選択
+```
+
+同じ候補で3枚ずつ比較したい時には便利ですが、1ジョブごとに調整結果を確認したい時は `change_every = 1` を使ってください。
+
+#### Runtime Exで経路を固定する場合
+
+Runtime Exでは、`!` は書かれた階層だけを固定します。親から子まで1本の経路を固定したい場合は、各階層へそれぞれ `!` が必要です。
+
+```text
+black hair{
+  straight long hair
+  short cut
+}
+!blonde hair{
+  !long hair
+  wavy long hair
+}
+```
+
+この例では、最上位で `blonde hair`、その子階層で `long hair` を固定するため、`blonde hair, long hair` が出力されます。
 
 ## 入力例
 
