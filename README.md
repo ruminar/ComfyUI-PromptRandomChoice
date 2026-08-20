@@ -1,113 +1,115 @@
 # ComfyUI-PromptRandomChoice
 
-実行のたびに「プロンプトガチャ」を爆速で回す、超軽量なランダム選択ノードじゃ！
+English | [日本語](README.ja.md)
 
-「背景や天気を適当に変えて、一晩中回しておきたいのう……」<br/>
-そんなおぬしの願いを、実行時間 0.010s（注：作者環境で速いとき）という瞬速の魔法で叶えて進ぜよう！
+A lightweight random-choice node that quickly draws a new "prompt gacha" result as your workflow runs.
 
-背景・時間帯・天気などを別々にランダム化したい時に便利じゃ。<br/>
-フロー内に複数個置いても、それぞれ独立して動くぞ。
+Want to vary backgrounds and weather while leaving a workflow running overnight?<br/>
+This node is designed for that job, with an execution time as low as 0.010 seconds in the author's environment.
+
+It is especially useful when you want to randomize backgrounds, time of day, weather, and other prompt parts independently.<br/>
+You can place multiple instances in one workflow; each instance keeps its own selection state.
 
 
 ## v0.6.0
 
-候補を実行中に編集できるRuntime版と、候補リストを操作しやすくする制御記号を追加したのじゃ。
+v0.6.0 adds Runtime nodes for editing candidates while queued jobs are running, plus control prefixes for managing candidate lists.
 
 - `Runtime Prompt Random Choice`
 - `Runtime Prompt Random Choice Ex`
-- `#` で始まる候補を一時的にコメントアウト
-- Runtime版では `!` で始まる候補を次回再選択時に強制選択
-- Ex版の直積構文を展開前に検出して停止
-- Runtime編集中の波括弧不一致は、最後に受理した正常な候補を使って待機
+- Temporarily disable candidates whose trimmed text starts with `#`
+- In Runtime nodes, force a candidate starting with `!` at the next reselection point
+- Detect Cartesian-product syntax in Ex nodes before expansion and stop with an error
+- While editing Runtime Ex input, unmatched braces keep using the last accepted valid candidate set
 
-互換性に関する注意:
+Compatibility notes:
 
-- 従来版でも先頭 `#` はコメントとして扱われます
-- `scene{day|night}{clear|rain}` のような隣接子グループは使用できなくなりました
-  - 今回のバージョンより、Ex版での直積を禁止しています
-  - 直積を実現したい場合は、それぞれ別のExノードへ分け、String Joinで結合してください
+- A leading `#` is now treated as a comment in the non-Runtime nodes too
+- Adjacent child groups such as `scene{day|night}{clear|rain}` are no longer supported
+  - Cartesian products are prohibited in Ex nodes as of this version
+  - Use separate Ex nodes and combine their outputs with String Join when you need independent axes
 
 ## v0.5.0
 
-`Safe Random Seed` を追加したのじゃ。
+Added `Safe Random Seed`.
 
 - `Safe Random Seed`
-  - KSampler向けに、0以上のランダムseedだけを出力する小型ノード
-  - Python側で `secrets` を使って発番します
-  - 実行後、ノードタイトルを `Seed: 4897362896` のように書き換えます
+  - A small KSampler-oriented node that only outputs non-negative random seeds
+  - Generates values server-side with Python's `secrets` module
+  - Updates its title after execution, for example `Seed: 4897362896`
 
 ## v0.4.0
 
-`Prompt Random Choice Ex` を追加したのじゃ。
+Added `Prompt Random Choice Ex`.
 
 - `Prompt Random Choice`
-  - フラットな候補リストから1つ選ぶノード
+  - Selects one item from a flat candidate list
 - `Prompt Random Choice Ex`
-  - フラット候補に加えて、`{}` による入れ子の候補展開に対応したノード
-  - 最終葉候補が均等確率になるように、葉数を数えて1経路だけを選択します
-  - 完成文字列を事前に全列挙せず、展開済み文字列の大量生成を避けます
+  - Supports both flat candidates and nested candidate branches written with `{}`
+  - Counts leaves and selects one path so every final leaf has equal probability
+  - Avoids materializing every completed string in advance
 
-どちらもノードとしての出力は同じじゃ。
+Both nodes provide the same outputs.
 
 - `selected_text`
 - `selected_text_safe`
 
-## 特徴
+## Features
 
-- **実行ごとにランダム選択**
-  - キューを雑に100件積んでも、毎回候補を選び直すぞ。
+- **Random selection on execution**
+  - Queue as many jobs as you like; the node reselects according to `change_every`.
 
-- **区切りは `|` または実際の改行**
-  - `|` と改行の両方を区切りとして扱うので、混在していても動くぞ。
-  - 区切り文字が連続して出現した場合は、候補から取り除かれることに注意じゃ。
-    - 明示的に空白文字列を候補として返却させたい場合は、明示的に `()` と指定するのじゃ。
+- **Use `|` or real line breaks as separators**
+  - Both forms can be mixed in the same input.
+  - Empty items created by repeated separators are ignored.
+    - Write `()` when you explicitly want an empty-string candidate.
 
-- **候補の前後の `,` と空白を自動で整理**
+- **Automatic cleanup of surrounding commas and whitespace**
   - `town,`
   - `coffee shop,`
   - `castle, fortress,`
-  のような書き方でも大丈夫じゃ。
+  These styles are all accepted.
 
-- **現在の選択結果をタイトル表示**
-  - 実行時にノードタイトルが `Ch: coffee shop` のように更新されるぞ。
-  - KSamplerのプレビューと見比べやすいのじゃ。
+- **Current result shown in the node title**
+  - The title updates after execution, for example `Ch: coffee shop`.
+  - This makes it easy to compare the selected prompt with the KSampler preview.
 
-- **KSampler向けの安全なランダムseed生成**
-  - `Safe Random Seed` は、0以上のINTだけを出力するぞ。
-  - 実行後、ノードタイトルが `Seed: 4897362896` のように更新されるのじゃ。
+- **Safe random seeds for KSampler**
+  - `Safe Random Seed` outputs non-negative integers only.
+  - Its title updates after execution, for example `Seed: 4897362896`.
 
-- **複数設置に対応**
-  - 背景用、時間帯用、天気用など、複数ノードを置いてそれぞれ別々に使えるぞ。
+- **Multiple independent instances**
+  - Use separate nodes for backgrounds, time of day, weather, and other independent prompt axes.
 
-- **ファイル名向けの返り値**
-  - ファイル名向けに安全化した文字列 `selected_text_safe` を出力するのじゃ。
+- **Filename-friendly output**
+  - `selected_text_safe` returns a sanitized form suitable for filenames.
 
-- **明示的な空候補 `()` に対応**
-  - `()` が選ばれた場合、プロンプト向け出力は空文字に、ファイル名向け出力は `empty` になるのじゃ。
+- **Explicit empty candidate `()`**
+  - When selected, the prompt output is an empty string and the filename output is `empty`.
 
-- **候補のコメントアウト**
-  - trim後の先頭が `#` の候補は選択対象から除外されます。
-  - Ex版では各階層で利用できます。
+- **Candidate comments**
+  - A candidate whose trimmed text starts with `#` is excluded from selection.
+  - Comments work at every level in Ex nodes.
 
-- **Runtime編集**
-  - Runtime版では、Queue投入後でもサーバーが受理した最新候補集合を参照できます。
-  - `!` はRuntime版だけで強制選択記号として働き、従来版では通常文字です。
+- **Runtime editing**
+  - Runtime nodes use the latest candidate set accepted by the server, even after jobs have been queued.
+  - `!` forces a candidate only in Runtime nodes; non-Runtime nodes treat it as ordinary text.
 
-## Prompt Random Choice Ex の追加要素
+## Additional Prompt Random Choice Ex features
 
-- **フラット候補に加えて、`{}` による入れ子の候補展開に対応**
-  - しかも、ComfyUIの標準記法と異なり、`{}` 内を入れ子にできるのじゃ。
-    - `{}` 内の要素は内側から解釈され、選択項目がカンマで前後に接続される。
-  - `|` と改行の両方を区切りとして扱うので、混在していても動くぞ。
-  - 区切り文字が連続して出現した場合は、候補から取り除かれることに注意じゃ。
-    - 明示的に空白文字列を候補として返却させたい場合は、明示的に `()` と指定するのじゃ。
+- **Nested candidate branches with `{}` in addition to flat candidates**
+  - Unlike ComfyUI's standard selection notation, groups can be nested.
+    - Inner selections are evaluated as child branches and joined to their parent with commas.
+  - Both `|` and real line breaks separate candidates and may be mixed.
+  - Empty items created by repeated separators are ignored.
+    - Write `()` to explicitly return an empty string.
     
-ここは実例を見てもらった方が話が早そうじゃ。
+An example is the easiest way to see how this works.
 ```text
 town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
 ```
 
-これは、概念上は次の葉候補を持つのじゃ。
+Conceptually, this expression has the following leaf candidates.
 
 ```text
 town
@@ -117,66 +119,66 @@ zoo, aquarium, fish
 zoo, aquarium, jellyfish
 ```
 
-この5候補から1つが選ばれるのじゃ。<br/>
-最終葉候補がすべて等しい確率になるよう、各枝の葉数を使って1経路だけを選ぶため、完成文字列を事前に全列挙はしません。
+One of these five candidates is selected.<br/>
+The selector uses each branch's leaf count to choose one path with equal probability for every final leaf. It does not materialize all completed strings in advance.
 <br/>
 
-## 導入方法
+## Installation
 
-ComfyUIの `custom_nodes` ディレクトリで、以下のコマンドを打ち込むのじゃ！
+Run the following command in ComfyUI's `custom_nodes` directory.
 
 ```bash
 git clone https://github.com/ruminar/ComfyUI-PromptRandomChoice.git
 ```
 
-## 使い方
+## Usage
 
-ノード追加メニューの `Prompt Random Choice` カテゴリに、通常版・Runtime版・Safe Random Seedがまとまっています。
+The `Prompt Random Choice` category in the Add Node menu contains the standard nodes, Runtime nodes, and Safe Random Seed.
 
-まず、用途に合うノードを選びます。
+First, choose the node that matches your use case.
 
-| やりたいこと | 使うノード |
+| What you want to do | Node |
 | --- | --- |
-| 単純な候補リストから1つ選びたい | `Prompt Random Choice` |
-| 親子関係のある候補を `{}` で書きたい | `Prompt Random Choice Ex` |
-| キュー実行中に単純な候補リストを編集したい | `Runtime Prompt Random Choice` |
-| キュー実行中に `{}` を含む候補リストを編集したい | `Runtime Prompt Random Choice Ex` |
+| Select one item from a simple list | `Prompt Random Choice` |
+| Write parent-child candidates with `{}` | `Prompt Random Choice Ex` |
+| Edit a simple candidate list while queued jobs are running | `Runtime Prompt Random Choice` |
+| Edit a candidate list containing `{}` while queued jobs are running | `Runtime Prompt Random Choice Ex` |
 
-1. 上の表から、用途に合うノードを置く
-2. `options_text` に候補を入れる（[入力例](#入力例)を参照）
-3. 必要に応じて `change_every` を選ぶ
-4. `selected_text` をString Join系の文字列結合ノードへ繋ぎ、ポジティブプロンプトへ足す
-5. キューを好きなだけ積む
+1. Add the appropriate node from the table above
+2. Enter candidates in `options_text` (see [Input examples](#input-examples))
+3. Set `change_every` as needed
+4. Connect `selected_text` to a String Join-style node and add it to the positive prompt
+5. Queue as many jobs as you like
 
-`change_every = 1` なら1ジョブごとに選び直し、`change_every = 3` なら同じ候補を3ジョブ続けて使用します。迷った時は `1` のままで大丈夫じゃ。
+With `change_every = 1`, the node reselects for every job. With `change_every = 3`, it uses the same candidate for three jobs. Leave it at `1` if you are unsure.
 
 <br/>
 <img width="544" height="526" alt="image" src="https://github.com/user-attachments/assets/d230659e-f008-4232-955d-1fa6fdf299fa" /><br/><br/>
 
 <img width="594" height="555" alt="image" src="https://github.com/user-attachments/assets/7966c50e-15c7-41cf-b167-06a54054acec" /><br/>
-※ 設定後は折りたたんで使うのもおすすめなのじゃ。
+Once configured, you may want to collapse the node to save canvas space.
 
-### Runtime版で、生成を続けながら候補を調整する
+### Tune candidates while generation continues with a Runtime node
 
-ランダム抽選のままでは、調整したい候補が次にいつ選ばれるか分かりません。Runtime版では、半角の `!` を候補の先頭へ付けることで、その候補を一時的に固定できます。従来版の `Prompt Random Choice` / `Prompt Random Choice Ex` では、`!` は固定記号ではなく通常文字として扱われます。
+With ordinary random selection, you do not know when the candidate you want to tune will appear again. Runtime nodes let you temporarily force a candidate by adding an ASCII `!` to the start of it. In the non-Runtime `Prompt Random Choice` and `Prompt Random Choice Ex` nodes, `!` is ordinary text and does not force a selection.
 
-この機能を使うと、次の流れでキューを止めずに候補を育てられます。
+This gives you a practical edit-and-preview loop without stopping the queue.
 
 ```text
-ランダム候補から調整したいものを決める
+Choose a random candidate you want to tune
   ↓
-先頭へ ! を付けて一時固定する
+Add ! to its beginning to force it temporarily
   ↓
-生成結果を見ながら候補を書き換える
+Edit the candidate while reviewing generated images
   ↓
-納得できたら ! を外し、ランダム候補へ戻す
+Remove ! when satisfied and return it to the random pool
 ```
 
-リアルタイム調整を始める時は、先に `change_every = 1` を設定してからキューへ投入してください。これで、入力欄が `LIVE` になった後の次のジョブから、最新候補を評価します。すでに実行中のジョブへ途中から反映するものではありません。
+For interactive tuning, set `change_every = 1` before adding jobs to the queue. After the input status becomes `LIVE`, the latest accepted candidates are evaluated by the next job. Edits do not alter a job that is already running.
 
-#### 1. まずは通常の候補を用意する
+#### 1. Start with a normal candidate list
 
-改行、または `|` が候補の区切りです。
+Use line breaks or `|` to separate candidates.
 
 ```text
 black hair, straight long hair,
@@ -184,9 +186,9 @@ dark brown hair, short cut,
 blonde hair, long hair,
 ```
 
-#### 2. 調整したい候補を `!` で固定する
+#### 2. Force the candidate you want to tune with `!`
 
-金髪だけを確認したい場合は、候補のtrim後の先頭へ `!` を付けます。`!` 自体は出力文字列に含まれません。
+To review only the blonde-hair candidate, add `!` to the beginning of its trimmed text. The `!` itself is removed from the output.
 
 ```text
 black hair, straight long hair,
@@ -194,11 +196,11 @@ dark brown hair, short cut,
 !blonde hair, long hair,
 ```
 
-Runtime版は、同じ階層に `!` 候補が複数ある場合、上から最初の1件を選びます。
+If more than one candidate at the same level starts with `!`, a Runtime node uses the first one from the top.
 
-#### 3. キューを動かしたまま内容を調整する
+#### 3. Tune it while the queue keeps running
 
-入力欄の表示が `LIVE` になったことを確認します。そのまま生成結果を見ながら、固定中の候補を書き換えます。
+Wait until the input shows `LIVE`, then edit the forced candidate while reviewing the generated images.
 
 ```text
 black hair, straight long hair,
@@ -206,11 +208,11 @@ dark brown hair, short cut,
 !gold yellow hair, very long hair, blue eyes, small ahoge, side braid, black ribbon,
 ```
 
-`change_every = 1` なら、サーバーが受理した最新内容が次のジョブの選択時に使われます。キューをいったん削除して積み直す必要はありません。
+With `change_every = 1`, the latest content accepted by the server is used at the next job's selection point. You do not need to clear and rebuild the queue.
 
-#### 4. 調整が終わったら `!` を外す
+#### 4. Remove `!` when tuning is complete
 
-納得できる結果になったら `!` を外します。固定されていた内容が、再び通常のランダム候補の1つとして選ばれるようになります。
+When you are satisfied, remove `!`. The tuned text returns to the normal random candidate pool.
 
 ```text
 black hair, straight long hair,
@@ -218,23 +220,23 @@ dark brown hair, short cut,
 gold yellow hair, very long hair, blue eyes, small ahoge, side braid, black ribbon,
 ```
 
-#### `change_every` を2以上にした場合
+#### When `change_every` is 2 or greater
 
-`change_every` は、現在の選択結果を何回使い続けるかを決めます。たとえば `change_every = 3` の場合、途中で編集したり `!` を追加したりしても、現在の結果を3回出力し終えるまでは切り替わりません。
+`change_every` controls how many times the current selected result is reused. With `change_every = 3`, editing candidates or adding `!` does not interrupt the current holding period.
 
 ```text
-実行1: Aを選択
-        ↓ Runtimeで !B を追加
-実行2: A
-実行3: A
-実行4: 最新候補を評価してBを選択
+Run 1: Select A
+       ↓ Add !B in the Runtime input
+Run 2: A
+Run 3: A
+Run 4: Evaluate the latest candidates and select B
 ```
 
-同じ候補で3枚ずつ比較したい時には便利ですが、1ジョブごとに調整結果を確認したい時は `change_every = 1` を使ってください。
+This is useful when comparing three images per candidate. Use `change_every = 1` when you want to review each edit on the next job.
 
-#### Runtime Exで経路を固定する場合
+#### Forcing a path in Runtime Ex
 
-Runtime Exでは、`!` は書かれた階層だけを固定します。親から子まで1本の経路を固定したい場合は、各階層へそれぞれ `!` が必要です。
+In Runtime Ex, `!` only forces the level where it appears. To force one complete path from parent to child, add `!` separately at every level on that path.
 
 ```text
 black hair{
@@ -247,11 +249,11 @@ black hair{
 }
 ```
 
-この例では、最上位で `blonde hair`、その子階層で `long hair` を固定するため、`blonde hair, long hair` が出力されます。
+This example forces `blonde hair` at the top level and `long hair` in its child group, producing `blonde hair, long hair`.
 
-## 入力例
+## Input examples
 
-### 改行区切り (改行前の`,`は任意です)
+### Line-break separated (a comma before the line break is optional)
 
 ```text
 town,
@@ -270,7 +272,7 @@ starry sky,
 coffee shop,
 ```
 
-### `|` 区切り
+### `|` separated
 
 ```text
 town|
@@ -288,67 +290,67 @@ flower field|
 starry sky|
 coffee shop|
 ```
-### 何も追加しない候補
+### A candidate that adds nothing
 
-`()` は明示的な空候補として扱われます。
+`()` is an explicit empty candidate.
 
 ```text
 ()|(full body:0.9)
 ```
 
-この例では、何も追加しない場合と、`(full body:0.9)` を追加する場合をランダムに切り替えられます。
+This example randomly switches between adding nothing and adding `(full body:0.9)`.
 
-### 選ばれやすさを調整したい場合
+### Adjusting selection probability
 
-同じ候補を複数回書けば、そのぶん選ばれやすくなります。
+Repeat a candidate to make it more likely to be selected.
 
 ```text
 day|day|day|sunset|night
 ```
 
-昼を多めに出したい、たまに夕方や夜も混ぜたい、という時に便利じゃ。
+This is useful when you want mostly daytime images with occasional sunset or night scenes.
 
 <br/>
 
-## 仕様
+## Core rules
 
-- `|` または実際の改行で分割
-- `\n` という文字列は区切りとして扱わない
-- 各候補の前後の空白と `,` を trim
-- 空候補は無視
-- `()` は明示的な空候補として扱う
-- trim後の先頭が `#` の候補はコメントとして除外
-- `!` は従来版では通常文字として扱う
-- `change_every` が 1 なら毎回選び直す
-- `change_every` が 2 以上なら、その回数ぶん同じ候補を維持する
-- 実行時にタイトルへ `Ch: lake` や `Ch: (empty) (2/3)` のように表示する
-- `Safe Random Seed` は実行時にタイトルへ `Seed: 4897362896` のように表示する
+- Split candidates on `|` or real line breaks
+- The two-character string `\n` is not a separator
+- Trim surrounding whitespace and commas from each candidate
+- Ignore empty candidates
+- Treat `()` as an explicit empty candidate
+- Exclude a candidate as a comment when its trimmed text starts with `#`
+- Treat `!` as ordinary text in non-Runtime nodes
+- Reselect every run when `change_every` is 1
+- Keep the same result for the specified number of runs when `change_every` is 2 or greater
+- Show values such as `Ch: lake` or `Ch: (empty) (2/3)` in the title after execution
+- Show a value such as `Seed: 4897362896` in the Safe Random Seed title after execution
 
 ## Safe Random Seed
 
-KSampler向けに、0以上のランダムseedを1つ生成します。
-汎用の整数Primitiveを `randomize` すると負数が出る場合がありますが、このノードは負数を出しません。
-SDE系サンプラーで `expected non-negative integer` が出る事故を避けるための小さな保険じゃ。
+Generates one non-negative random seed for KSampler.
+A generic integer Primitive may produce negative values when randomized; this node never does.
+It is a small safeguard against `expected non-negative integer` errors from SDE-family samplers.
 
-- 入力はありません
-- 出力は `seed` だけです
-- 乱数はComfyUIサーバー側、Pythonの `secrets` で生成します
-- 発番はノード実行時です
-- 出力値の範囲は `0` から `2^53 - 1` です
-- 同じノードの出力を複数箇所へ接続した場合、同じseed値を配ります
-- 別々のseedが欲しい場合は、`Safe Random Seed` ノードを複数置いてください
-- 前回出力されたseed値は、次回の乱数生成には影響しません
-- 実行後、ノードタイトルを `Seed: 4897362896` のように書き換えます
+- No inputs
+- One output: `seed`
+- Uses Python's `secrets` module on the ComfyUI server
+- Generates a new value when the node executes
+- Output range: `0` through `2^53 - 1`
+- Connecting one node to multiple destinations sends the same seed to all of them
+- Add multiple `Safe Random Seed` nodes when you need independent values
+- The previous output does not affect the next generated seed
+- Updates the node title after execution, for example `Seed: 4897362896`
 
 ## Prompt Random Choice
 
-候補リストから1つ選びます。
+Selects one item from a candidate list.
 
 ```text
 town|park|lake|coffee shop
 ```
 
-`()` は明示的な空候補です。
+`()` is an explicit empty candidate.
 
 ```text
 ()|(full body:0.9)
@@ -356,19 +358,19 @@ town|park|lake|coffee shop
 
 ## Prompt Random Choice Ex
 
-`Prompt Random Choice` と同じフラットな候補リストをそのまま使えます。
+You can use the same flat candidate lists accepted by `Prompt Random Choice`.
 
 ```text
 town|park|lake|coffee shop
 ```
 
-さらに、候補の中に `{}` を書くことで、選ばれた候補にだけ追加候補をぶら下げられます。
+You can also add a child group with `{}` so that extra candidates are evaluated only under the selected parent.
 
 ```text
 town|zoo{animals{birds|penguins}|aquarium,{fish|jellyfish}}
 ```
 
-この入力は、概念上は次の最終葉候補を持ちます。
+Conceptually, this input has the following final leaf candidates.
 
 ```text
 town
@@ -378,9 +380,9 @@ zoo, aquarium, fish
 zoo, aquarium, jellyfish
 ```
 
-この5候補から1つが選ばれます。
+One of these five candidates is selected.
 
-### 複数行の Ex 例
+### Multiline Ex example
 
 ```text
 zoo{
@@ -395,7 +397,7 @@ zoo{
 }
 ```
 
-出力例:
+Possible outputs:
 
 ```text
 zoo, animals, birds
@@ -404,54 +406,54 @@ zoo, aquarium, fish
 zoo, aquarium, jellyfish
 ```
 
-### Ex のルール
+### Ex rules
 
-- 選択候補の区切り文字は、実際の改行 または `|`
-- 空候補は無視
-- `()` は明示的な空候補
-- `{}` の内部も、実際の改行 または `|` で候補分割
-- 各階層で `#` コメント候補を除外
-- 展開結果は親要素へ `, ` で接続
-- 最終葉候補が均等確率になるよう、葉数を重みとして1経路だけ選択
-- 完成した全候補文字列は事前に列挙しない
-- 入れ子の深さと葉候補数には安全上限があります
-- 1候補が持てる直接の子グループは1個まで
-- `A{B|C}{D|E}` のような直積構文は展開前にエラー
-- リテラルの `{` / `}` をプロンプト文字として使う用途は非対応
+- Separate candidates with real line breaks or `|`
+- Ignore empty candidates
+- Treat `()` as an explicit empty candidate
+- Separate candidates inside `{}` with real line breaks or `|` as well
+- Exclude `#` comment candidates at every level
+- Join selected child text to its parent with `, `
+- Weight each path by its leaf count so all final leaves have equal probability
+- Do not materialize every completed candidate string in advance
+- Enforce safety limits on nesting depth and leaf count
+- Allow at most one direct child group per candidate
+- Reject Cartesian-product syntax such as `A{B|C}{D|E}` before expansion
+- Literal `{` and `}` characters in prompt text are not supported
 
-### 直積構文について
+### Cartesian-product syntax
 
-縦方向の入れ子と、子を持つ親候補を同じ階層へ複数並べることはできます。
+Vertical nesting is allowed, and multiple parent candidates with their own child groups may appear at the same level.
 
 ```text
 black hair{straight long hair|short cut}
 blonde hair{long hair|wavy long hair}
 ```
 
-一方、同じ候補へ子グループを横に複数並べる構文は使用できません。
+However, one candidate cannot contain multiple adjacent child groups.
 
 ```text
 A{B|C}{D|E}
 ```
 
-この構文は直積を作るため、候補展開前にエラーになります。独立した軸は別の `Prompt Random Choice Ex` ノードへ分け、String Joinで結合してください。
+This syntax creates a Cartesian product and therefore raises an error before candidate expansion. Put independent axes in separate `Prompt Random Choice Ex` nodes and combine their outputs with String Join.
 
 ## Runtime Prompt Random Choice
 
 <img width="699" height="420" alt="image" src="https://github.com/user-attachments/assets/fea5989f-6348-404f-87c5-aa5506113b71" />
 
-`Runtime Prompt Random Choice` と `Runtime Prompt Random Choice Ex` は、実行時点でComfyUIサーバーが受理済みの最新候補テキストを参照します。候補入力欄には同期状態が表示されます。
+`Runtime Prompt Random Choice` and `Runtime Prompt Random Choice Ex` use the latest candidate text accepted by the ComfyUI server at execution time. The candidate input displays its synchronization state.
 
-- `EDITING`: 編集中または送信待ち
-- `SYNCING`: サーバーへ送信中
-- `LIVE`: 最新入力をサーバーが受理済み
-- `EDITING / SYNTAX INCOMPLETE`: Exの波括弧が編集中で不一致。最後の正常revisionを使用
-- `HARD ERROR`: サポートしない完成済み構文。修正されるまで次回実行を停止
-- `SYNC ERROR`: 通信または同期エラー
+- `EDITING`: Input is being edited or waiting to be sent
+- `SYNCING`: Input is being sent to the server
+- `LIVE`: The server has accepted the latest input
+- `EDITING / SYNTAX INCOMPLETE`: Ex braces are temporarily unmatched; the last valid revision remains active
+- `HARD ERROR`: Structurally complete but unsupported syntax; executions stop until it is corrected
+- `SYNC ERROR`: Communication or synchronization error
 
-### `!` 強制選択
+### Forced selection with `!`
 
-`!` はRuntime版だけで有効です。同じ階層に複数ある場合は、上から最初の候補を使用します。先頭の `!` は出力されません。
+`!` is active only in Runtime nodes. If multiple candidates at the same level start with `!`, the first one from the top is used. The leading `!` is not included in the output.
 
 ```text
 black hair
@@ -459,104 +461,103 @@ black hair
 !silver hair
 ```
 
-この場合は `blonde hair` を使用します。`!()` は空文字を強制選択します。従来版の `Prompt Random Choice` / `Prompt Random Choice Ex` では `!` は通常文字です。
+This example uses `blonde hair`. `!()` forces an empty string. The non-Runtime `Prompt Random Choice` and `Prompt Random Choice Ex` nodes treat `!` as ordinary text.
 
-Runtime Exでは各階層で最初の `!` を適用します。`!` はその階層の枝だけを絞り込み、選択された枝の子階層は引き続き評価されます。
+Runtime Ex applies the first `!` independently at each level. It restricts only that level's branch; child levels under the selected branch are still evaluated.
 
-### Runtimeと`change_every`
+### Runtime and `change_every`
 
-Runtimeでリアルタイム更新されるのは候補集合であり、現在選択中の完成文字列ではありません。`change_every = 3` なら、途中で候補を編集・削除・コメントアウトしたり `!` を追加しても、現在の結果を3回出力するまで維持します。
+Runtime editing updates the candidate set, not the completed string currently being held. With `change_every = 3`, the current result is kept for all three runs even if you edit, remove, comment out, or force candidates during that period.
 
 ```text
-実行1: Aを選択
-実行2: A
-実行3: A
-実行4: 最新revisionの候補集合から再選択
+Run 1: Select A
+Run 2: A
+Run 3: A
+Run 4: Reselect from the latest candidate revision
 ```
 
-`!` は次回の再選択時に通常のランダム選択を上書きし、保持期間へ割り込みません。候補編集を次のジョブへ反映したい場合は `change_every = 1` を使用してください。`change_every` 自体はRuntime同期されず、Queue投入時の値を使います。
+`!` overrides normal random selection at the next reselection point; it does not interrupt the current holding period. Use `change_every = 1` when edits should affect the next job. `change_every` itself is not synchronized at Runtime—the value submitted with the queued workflow is used.
 
-### Runtime Exの構文エラー
+### Runtime Ex syntax errors
 
-- 波括弧不一致は編集中の一時状態として扱い、新しいrevisionにはしません。最後に受理した正常な候補集合で生成を継続します。
-- 隣接子グループによる直積はHard Errorです。古い候補へ黙ってフォールバックせず、次回実行でエラーにします。
+- Unmatched braces are treated as a temporary editing state and are not accepted as a new revision. Generation continues with the last accepted valid candidate set.
+- A Cartesian product caused by adjacent child groups is a Hard Error. It never silently falls back to old candidates; the next execution raises an error.
 
-## 出力
+## Outputs
 
 - `selected_text`  
-  trim後の選択文字列です。  
-  `()` が選ばれた場合は空文字 `""` になります。
+  The selected string after trimming.<br/>
+  Returns the empty string `""` when `()` is selected.
 
 - `selected_text_safe`  
-  ファイル名向けに安全化した出力です。  
-  `selected_text` が空なら `empty` を返します。
+  A filename-safe version of the selected string.<br/>
+  Returns `empty` when `selected_text` is empty.
 
-## 推奨構成
+## Recommended workflow structure
 
-`selected_text` を kjnodes の `Join String Multi` などへ接続し、区切り文字は結合ノード側で管理するのがおすすめじゃ。
+Connect `selected_text` to a string-combination node such as kjnodes' `Join String Multi`, and manage delimiters on the joining side.
 
-複数の `Prompt Random Choice` / `Prompt Random Choice Ex` を並べることで、背景・時間帯・天気・構図などを別々にランダム化するのじゃ。
+Place multiple `Prompt Random Choice` or `Prompt Random Choice Ex` nodes side by side to randomize backgrounds, time of day, weather, composition, and other independent axes separately.
 
-ただし、Ex はすべての要素を1つにまとめるためのノードではなく、`zoo` の時だけ動物候補を追加するような、親子関係のある候補を扱うためのノードとして使うのがおすすめじゃ。
-
-<br/>
-
-## 標準選択記法 `{day|night|morning}` との違いについて
-
-- ComfyUI標準にも、プロンプト候補をランダムに切り替える構文として `{a|b|c}` 記法があります。<br/>
-この記法は、`CLIP Text Encode` でプロンプトが処理される段階で解決されます。
-
-- 一方、`PromptRandomChoice` はその前段で候補を1つに確定し、選ばれた文字列だけを通常の `STRING` として出力します。<br/>
-そのため、選ばれなかった候補は下流へ流れません。
-
-  - この性質により、選択候補の中にLoRAのトリガーワードをより安全に含めることもできます。<br/>
-選ばれた候補だけが後続ノードへ渡されるため、標準の `{a|b|c}` 記法よりも、候補の確定状態をワークフロー上で明示しやすくなります。
-    - ※ ただし、LoRA自体のロードON/OFFを切り替えるものではありません。  
-ここでいう安全性は、選ばれなかったトリガーワード文字列が下流へ流れない、という意味です。
-
-- 区切り文字は、標準の `{a|b|c}` 記法と同じ `|` を使えます。  
-そのため、標準記法から `{}` の中身を抜き出して `PromptRandomChoice` に持ってきたり、逆に `PromptRandomChoice` の中身を `{}` で括ってプロンプト文字列へ戻したりできます。<br/>
-出入り自由です。
-
-- また、画像生成の比較では、1回ごとにプロンプト候補が変わると、差分を判断しづらい場合があります。<br/>
-`PromptRandomChoice` では `change_every` を使うことで、同じ候補を数回維持してから次の候補へ切り替えることができます。
-
-- さらに、`PromptRandomChoice` の段階で確定した候補はノードタイトルに表示されます。
-  - KSamplerのプレビューと見比べながら、現在どの候補が使われているかを確認できます。
-  - `change_every` 指定時には、`Ch: lake (2/3)` のように進捗も表示されます。
+Ex is not intended to put every independent dimension into one node. Use it for real parent-child relationships—for example, adding animal candidates only when `zoo` is selected.
 
 <br/>
 
-## 開発仕様と回帰テスト
+## Difference from standard `{day|night|morning}` selection syntax
 
-実装時に守る仕様は [`.spec/README.md`](.spec/README.md) を起点にまとめています。
+- ComfyUI also supports `{a|b|c}` for random prompt choices.<br/>
+  That syntax is resolved when the prompt is processed by `CLIP Text Encode`.
 
-標準ライブラリだけで回帰テストを実行できます。
+- `PromptRandomChoice`, by contrast, resolves one candidate earlier and outputs only the selected text as a normal `STRING`.<br/>
+  Unselected candidates never travel downstream.
+
+  - This can make LoRA trigger words safer to use inside candidate lists because only the selected trigger text reaches later nodes.<br/>
+    It also makes the resolved state more explicit in the workflow than standard `{a|b|c}` syntax.
+    - This does **not** load or unload the LoRA itself.<br/>
+      "Safer" here only means that unselected trigger-word text is not passed downstream.
+
+- Candidate lists can use the same `|` separator as standard `{a|b|c}` syntax.<br/>
+  This makes it easy to move the contents of a standard group into `PromptRandomChoice`, or wrap a flat list in `{}` and move it back into prompt text.
+
+- When comparing generated images, changing prompt candidates every run can make differences difficult to judge.<br/>
+  `change_every` lets `PromptRandomChoice` keep one candidate for several runs before selecting another.
+
+- The candidate resolved by `PromptRandomChoice` is also displayed in the node title.
+  - You can compare it directly with the KSampler preview.
+  - When `change_every` is greater than 1, the title also shows progress such as `Ch: lake (2/3)`.
+
+<br/>
+
+## Development specifications and regression tests
+
+Internal implementation requirements are documented in Japanese starting from [`.spec/README.md`](.spec/README.md).
+
+The regression suite runs with the Python standard library only.
 
 ```bash
 python -B -m unittest discover -s tests -v
 ```
 
-pushとPull RequestではGitHub ActionsがPython回帰テストとJavaScript構文検査を自動実行します。
+GitHub Actions automatically runs the Python regression suite and JavaScript syntax checks on pushes and pull requests.
 
-## ライセンス
+## License
 
-GPL-3.0（ComfyUI本体の掟に従っておるぞ！）
+GPL-3.0, following ComfyUI's license requirements.
 
-## 宣伝画像
+## Promotional images (Japanese)
 
-<img width="1055" height="1491" alt="PromptRandomChoice説明画像" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
+<img width="1055" height="1491" alt="PromptRandomChoice overview" src="https://github.com/user-attachments/assets/7a4f1b5f-c77b-4e47-90af-cbd0330c85fe" />
 
-EX版
-<img width="1122" height="1402" alt="PromptRandomChoiceEx説明画像" src="https://github.com/user-attachments/assets/f45a44b7-5692-4d98-854a-7736677e1f5a" />
+Ex version
+<img width="1122" height="1402" alt="PromptRandomChoiceEx overview" src="https://github.com/user-attachments/assets/f45a44b7-5692-4d98-854a-7736677e1f5a" />
 
-Runtime版
-<img width="1055" height="1491" alt="image" src="https://github.com/user-attachments/assets/b766c03e-9d95-4e88-9bd2-1b448f4e21c7" />
+Runtime version
+<img width="1055" height="1491" alt="Runtime PromptRandomChoice overview" src="https://github.com/user-attachments/assets/b766c03e-9d95-4e88-9bd2-1b448f4e21c7" />
 
 
-## コピペ用おすすめ候補リスト
+## Copy-ready recommended candidate lists
 
-### 背景
+### Background
 
 ```text
 Indoor,
@@ -733,43 +734,43 @@ samurai residence,
 courtyard garden,
 ```
 
-### 時刻
+### Time of day
 ```text
 ()|day|day|day|morning|sunset|night
 ```
 
-### 天候
+### Weather
 ```text
 ()|Strong sunshine|(clear sky:0.9)|(clear sky:0.9)|(clear sky:0.9)|(cloudy sky:0.9)|rain|snow|Rainbow after Rain|storm, thunder
 ```
 
-### 光
+### Lighting
 ```text
 ()|soft lighting|warm lighting|natural lighting|(backlighting:0.8)|(dramatic lighting:0.8)|(cinematic lighting:0.8)
 ```
 
-### 姿勢、視線、動作
+### Pose, gaze, and action
 ```text
 ()|standing|sitting|walking|looking at viewer|waving|hands on hips|jumping high|running|skipping|looking up
 ```
 
-### 表情
+### Expression
 ```text
 ()|smiling|gentle smile|serious expression|surprised expression|slightly surprised|shy expression|happy expression|smiling, open mouth|slightly open mouth|closed-mouth smile
 ```
 
-### 構図
+### Composition
 ```text
 ()|(face close-up:0.9)|upper body|upper body|full body|full body|full body|full body|full body|wide shot|(from side:0.8)|(from above:0.8)|(low angle:0.8)|(from behind, looking back:0.8)
 ```
 
-### 背景 Ex 版
+### Background — Ex version
 
-背景は、項目ごとにまとめてあるから、全部くっつけて1つの背景ノードにするのも、<br/>
-それぞれ別ノードにして組み合わせるのも、おぬしの好きな方を選べるようにしたぞ！<br/>
-同じ項目を繰り返したり、不要な項目を削除したりして、おぬし好みのプロンプトに育てておくれなのじゃ。
+The background candidates are grouped by theme. You can combine them into one background node,<br/>
+or put each group in a separate node and mix them independently.<br/>
+Repeat items to increase their probability, remove anything you do not need, and customize the lists to suit your workflow.
 
-#### Ex 標準背景
+#### Standard backgrounds for Ex
 ```text
 indoor{
   girl's room,
@@ -946,7 +947,7 @@ traditional{
 }
 ```
 
-#### Ex ファンタジー特盛背景
+#### Extra-rich fantasy backgrounds for Ex
 ```text
 Fantasy{
   (),
@@ -1090,7 +1091,7 @@ Fantasy-ish{
 }
 ```
 
-#### Ex 季節/イベント背景
+#### Seasonal and event backgrounds for Ex
 ```text
 Spring{
   (),
