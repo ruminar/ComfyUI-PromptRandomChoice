@@ -15,4 +15,4 @@
    `node --check web/runtime_prompt_random_choice.js` を成功させる。
 5. 互換性に影響する変更はREADMEとRELEASE_NOTESにも記載する。
 
-現在の対象バージョンは `0.6.0`。
+現在の対象バージョンは `0.6.1`。

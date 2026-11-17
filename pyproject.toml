@@ -1,6 +1,6 @@
 [project]
 name = "prompt-random-choice"
-version = "0.6.0"
+version = "0.6.1"
 description = "A ComfyUI custom node for random and runtime selection from prompt candidate lists, designed to pair with ComfyUI-StringJoinTools for live prompt composition during queued generation."
 license = { file = "LICENSE" }
 readme = "README.md"

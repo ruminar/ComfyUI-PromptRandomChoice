@@ -1,3 +1,30 @@
+## v0.6.1
+
+ComfyUI Nodes 2.0との互換性を公式Frontendの現行実装に基づいて確認し、退行防止テストを追加しました。
+
+## 変更
+
+- Runtime編集欄がNodes 2.0対応経路の`addDOMWidget`を使用し続けることを回帰テストで固定
+- 実行後タイトルが各ノードの`onExecuted`経由で更新されることを回帰テストで固定
+- Nodes 2.0 / Legacy Nodesの互換範囲と実機確認項目を仕様書へ追加
+
+## 互換性
+
+- ノードID、入力名、出力名、Workflow保存形式は変更していません
+- Pythonノードは従来のV1 APIを維持し、V3 APIへは移行していません
+- Runtimeノード全体の薄い背景色はLegacy Canvas限定の装飾です。Runtime編集、同期、選択結果には影響しません
+
+## 自動検証
+
+- Python回帰テスト 27件
+- Frontend回帰テスト 4件
+- Frontend JavaScript構文検査
+- `git diff --check`
+
+実ComfyUI上でのLegacy Nodes / Nodes 2.0の表示、Workflow保存・復元、Runtime同期は自動テストの対象外です。
+
+---
+
 ## v0.6.0
 
 候補をQueue投入後も編集できるRuntime版と、候補制御記号を追加しました。

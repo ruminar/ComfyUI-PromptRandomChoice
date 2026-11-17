@@ -11,6 +11,17 @@ It is especially useful when you want to randomize backgrounds, time of day, wea
 You can place multiple instances in one workflow; each instance keeps its own selection state.
 
 
+## v0.6.1
+
+v0.6.1 confirms compatibility with both Legacy Nodes and Nodes 2.0 against the current official ComfyUI frontend implementation and adds regression coverage for the shared frontend paths.
+
+- Keeps all node identifiers, inputs, outputs, and workflow serialization unchanged
+- Keeps the existing Python V1 node API
+- Verifies execution-title updates through each node's `onExecuted` callback
+- Verifies that the Runtime editor continues to use the Nodes 2.0-compatible `addDOMWidget` path
+
+The translucent whole-node Runtime tint is a Legacy Canvas-only cosmetic detail. Runtime editing, synchronization, and selection output are supported in both renderers.
+
 ## v0.6.0
 
 v0.6.0 adds Runtime nodes for editing candidates while queued jobs are running, plus control prefixes for managing candidate lists.
